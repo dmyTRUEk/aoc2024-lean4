@@ -18,6 +18,8 @@ package "aoc2024" where
 
 lean_lib "aoc2024"
 
+/- lean_lib "aoc2024.mylib" -/
+
 lean_exe "day1" where
   root := `aoc2024.day1.part1
 
