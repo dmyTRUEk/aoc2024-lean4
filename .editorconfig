@@ -1,0 +1,9 @@
+root = true
+
+[*.lean]
+indent_style = space
+indent_size = 4
+
+[lakefile.lean]
+indent_style = space
+indent_size = 2
