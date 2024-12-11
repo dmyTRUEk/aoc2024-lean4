@@ -1,5 +1,8 @@
 -- mylib
 
+-- TODO
+/- def todo := sorry -/
+
 /- def partition_n (l : List T) : List (List T) := -/
 /-     sorry -/
 
@@ -56,4 +59,29 @@ def sum [Add T] [OfNat T 0] : List T -> T
 #eval sum [0.1, 0.2]
 #guard 5050 == (sum $ List.range 101)
 #guard 5050 == (sum (List.range 101))
+
+
+
+def eq [BEq T] (x y : T) : Bool := x == y
+def ne [BEq T] (x y : T) : Bool := x != y
+def lt [Ord T] (x y : T) : Bool := (compare x y).isLT
+def gt [Ord T] (x y : T) : Bool := (compare x y).isGT
+def le [Ord T] (x y : T) : Bool := (compare x y).isLE
+def ge [Ord T] (x y : T) : Bool := (compare x y).isGE
+
+
+
+def apply_n (n : Nat) (f : T -> T) (arg : T) : T :=
+    if n <= 0 then arg else apply_n (n-1) f (f arg)
+
+#guard apply_n 0 (. * 2) 1 == 1
+#guard apply_n 1 (. * 2) 1 == 2
+#guard apply_n 2 (. * 2) 1 == 4
+#guard apply_n 8 (. * 2) 1 == 256
+
+
+
+def List.flatten : List (List T) -> List T := List.join
+
+#guard [1,2,3,4,5,6,7,8,9] == [[1,2,3], [4], [5,6], [7,8], [9]].flatten
 
