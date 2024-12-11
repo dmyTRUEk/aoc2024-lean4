@@ -7,7 +7,7 @@ import aoc2024.day1.input
 
 def solve (input : String) : Int :=
     input
-        |>.split (. == '\n')
+        |>.splitOn "\n"
         |>.map (.|>.splitOn "   ")
         |>.map (.|>.map String.toInt!) -- TODO: map_rec
         |> transpose
