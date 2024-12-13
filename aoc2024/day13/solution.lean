@@ -17,6 +17,10 @@ def Vec2d.zero : Vec2d := { x:=0, y:=0 }
 def Vec2d.toString (v : Vec2d) : String :=
     s!"[{v.x} {v.y}]"
 
+def Vec2d.add_to_xy (v : Vec2d) (n : Nat) : Vec2d :=
+    { x := v.x + n, y := v.y + n }
+
+#eval Vec2d.zero.add_to_xy 42
 
 def Vec2d.xyp_from_string (s : String) : Vec2d :=
     if let [some x, some y] := s.drop 12 |>.splitOn ", Y+" |>.map String.toNat? then
@@ -34,6 +38,8 @@ def Vec2d.xye_from_string (s : String) : Vec2d :=
 
 #eval Vec2d.xye_from_string "Prize: X=8400, Y=5400"
 
+
+
 structure ClawMachine where
     a : Vec2d
     b : Vec2d
@@ -43,6 +49,8 @@ deriving Repr, BEq
 def ClawMachine.toString (cm : ClawMachine) : String :=
     let { a, b, prize } := cm
     s!"ClawMachine = \{a=[{a.x} {a.y}], b=[{b.x} {b.y}], prize=[{prize.x}, {prize.y}]}"
+
+
 
 structure CMSolution where
     a : Nat
@@ -113,11 +121,14 @@ def solve_part_one (input : String) : Nat :=
 
 
 
-/- def solve_part2 (input : String) : Nat := -/
-/-     input -/
-/-         |> parse_input -/
-/-         |> sorry -/
+def solve_part_two (input : String) : Nat :=
+    input
+        |> parse_input
+        |>.map (fun cm => { cm with prize := cm.prize.add_to_xy $ 10^13 })
+        |>.filterMap find_solution
+        |>.map CMSolution.cost
+        |>.sum
 
-/- #eval solve_part_one example_2 -/
-/- #guard example_2_answer == solve_part_one example_2 -/
+#eval solve_part_two example_1
+/- #guard example_1_answer_part_two == solve_part_two example_1 -/
 
