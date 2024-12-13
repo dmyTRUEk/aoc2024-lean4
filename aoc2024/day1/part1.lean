@@ -7,15 +7,15 @@ import aoc2024.day1.input
 
 def solve (input : String) : Int :=
     input
-        |>.splitOn "\n"
+        |>.split_lines
         |>.map (.|>.splitOn "   ")
-        |>.map (.|>.map String.toInt!) -- TODO: map_rec
-        |> transpose
-        |>.map sort
-        |> transpose
+        |>.map_rec String.toInt!
+        |>.transpose
+        |>.map List.sort
+        |>.transpose
         |>.map (fun ab => ab[0]! - ab[1]!)
         |>.map Int.abs
-        |> sum
+        |>.sum
 
 
 #eval solve example_

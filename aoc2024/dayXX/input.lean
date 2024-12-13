@@ -1,1 +1,2 @@
-def input_ : String := "TODO"
+def input : String := "\
+TODO"
