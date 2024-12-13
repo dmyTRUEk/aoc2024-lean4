@@ -132,11 +132,28 @@ def String.split_lines : String -> List String :=
 
 
 
+/-- Split string into chunks (empty line separated). -/
+def String.split_chunks : String -> List String :=
+    (.|>.splitOn "\n\n")
+
+-- TODO(test)
+
+
+
 /-- String to "matrix" (list of lists) of characters. -/
 def String.to_list2d (input : String) : List $ List Char :=
     input.split_lines.map String.toList
 
 #guard [['a', 'b'], ['c', 'd']] == "ab\ncd".to_list2d
+
+
+
+/-- Enumerate list elements.
+* `['a','b','c'].enumerate == [(0,'a'), (1,'b'), (2,'c')]`
+-/
+def List.enumerate : List T -> List (Nat × T) := List.enum
+
+#guard [(0,'a'), (1,'b'), (2,'c')] == ['a','b','c'].enumerate
 
 
 
@@ -226,6 +243,32 @@ def const_fun : B -> (A -> B) := (fun _ => .)
 
 
 -- TODO(feat): "anti"-`const_fun` -- `const_fun` always return first argument. "anti"-`const_fun` should always return second argument.
+
+
+
+/-- Check if `index` is in `list` bounds.
+* `['a','b','c'].contains_index 0 = true`
+* `['a','b','c'].contains_index 1 = true`
+* `['a','b','c'].contains_index 2 = true`
+* `!['a','b','c'].contains_index 3 = false`
+* `!['a','b','c'].contains_index 4 = false`
+-/
+def List.contains_index (index : Nat) (list : List T) : Bool :=
+    index < list.length
+
+#guard ['a','b','c'].contains_index 0
+#guard ['a','b','c'].contains_index 1
+#guard ['a','b','c'].contains_index 2
+#guard !['a','b','c'].contains_index 3
+#guard !['a','b','c'].contains_index 4
+
+
+
+-- TODO(feat):
+/- def join := List.intersperse -/
+/- def List.dedup_cons := List.eraseReps -/
+/- def List.imap := .|>.enum.map -/
+/- def List.ifilter := .|>.enum.filter -/
 
 
 
