@@ -8,6 +8,13 @@
 
 
 
+/-- Endomorphism - function whose domain = codomain (image). -/
+def Endomorphism T := T -> T
+
+-- TODO(test)
+
+
+
 /-- Absolute value of the `Int`.
 * `( 42 : Int).abs = 42`
 * `(-42 : Int).abs = 42`
@@ -117,6 +124,52 @@ def List.flatten : List (List T) -> List T := List.join
 
 
 
+/-- Split string into lines. -/
+def String.split_lines : String -> List String :=
+    (.|>.splitOn "\n")
+
+#guard ["abc", "def", "ghi"] == "abc\ndef\nghi".split_lines
+
+
+
+/-- String to "matrix" (list of lists) of characters. -/
+def String.to_list2d (input : String) : List $ List Char :=
+    input.split_lines.map String.toList
+
+#guard [['a', 'b'], ['c', 'd']] == "ab\ncd".to_list2d
+
+
+
+/-- Unique elements of the list.
+* `[1,1,2,1,2,3,1,2,4,3,2,1].unique == [1,2,3,4]`
+-/
+def List.unique [BEq T] : Endomorphism $ List T :=
+    /- (.|>.foldl (λ acc el ↦ if acc.contains el then acc else acc.concat el) []) -/
+    List.eraseDups
+    -- TODO(optimization): if list.length > 1000  ->  use `HashSet`?
+
+#guard [1,2,3,4] == [1,1,2,1,2,3,1,2,4,3,2,1].unique
+
+
+
+-- TODO(feat): List.unique_by
+
+
+
+/-- Is all elements in list are unique.
+* `[1,2,3,4].all_unique = true`
+* `[1,2,1,4].all_unique = false`
+-/
+def List.all_unique [BEq T] (list : List T) : Bool :=
+    list == list.unique
+
+#guard [1,2,3,4].all_unique
+#guard ![1,1,2,1,2,3,1,2,4,3,2,1].all_unique
+/- #check_failure [1,2,3,4] == [1,1,2,1,2,3,1,2,4,3,2,1].all_unique -/
+/- #check_failure 2 3 -/
+
+
+
 /-- Map list of lists recursively.
 * `[[1,2],[3,4]].map_rec (. * 10) == [[10,20],[30,40]]`
 -/
@@ -124,4 +177,114 @@ def List.map_rec (f : A -> B) (list : List $ List A) : List $ List B :=
     list.map (.|>.map f)
 
 #guard [[10,20],[30,40]] == [[1,2],[3,4]].map_rec (. * 10)
+
+
+
+/-- Constant function.
+* `(const_fun true) 0     == true`
+* `(const_fun true) 10    == true`
+* `(const_fun true) "abc" == true`
+* `(const_fun true) "def" == true`
+* `(const_fun true) true  == true`
+* `(const_fun true) false == true`
+
+* `(const_fun 42) 0     == 42`
+* `(const_fun 42) 10    == 42`
+* `(const_fun 42) "abc" == 42`
+* `(const_fun 42) "def" == 42`
+* `(const_fun 42) true  == 42`
+* `(const_fun 42) false == 42`
+
+* `(const_fun "abc") 0     == "abc"`
+* `(const_fun "abc") 10    == "abc"`
+* `(const_fun "abc") "abc" == "abc"`
+* `(const_fun "abc") "def" == "abc"`
+* `(const_fun "abc") true  == "abc"`
+* `(const_fun "abc") false == "abc"`
+-/
+def const_fun : B -> (A -> B) := (fun _ => .)
+
+#guard true == (const_fun true) 0
+#guard true == (const_fun true) 10
+#guard true == (const_fun true) "abc"
+#guard true == (const_fun true) "def"
+#guard true == (const_fun true) true
+#guard true == (const_fun true) false
+#guard 42 == (const_fun 42) 0
+#guard 42 == (const_fun 42) 10
+#guard 42 == (const_fun 42) "abc"
+#guard 42 == (const_fun 42) "def"
+#guard 42 == (const_fun 42) true
+#guard 42 == (const_fun 42) false
+#guard "abc" == (const_fun "abc") 0
+#guard "abc" == (const_fun "abc") 10
+#guard "abc" == (const_fun "abc") "abc"
+#guard "abc" == (const_fun "abc") "def"
+#guard "abc" == (const_fun "abc") true
+#guard "abc" == (const_fun "abc") false
+
+
+
+-- TODO(feat): "anti"-`const_fun` -- `const_fun` always return first argument. "anti"-`const_fun` should always return second argument.
+
+
+
+/-- Index of element for which `pred` evaluates to true.
+* `[['a','b'],['c','d']].index_of_first_in_2d? (eq 'a') == some (0,0)`
+* `[['a','b'],['c','d']].index_of_first_in_2d? (eq 'b') == some (0,1)`
+* `[['a','b'],['c','d']].index_of_first_in_2d? (eq 'c') == some (1,0)`
+* `[['a','b'],['c','d']].index_of_first_in_2d? (eq 'd') == some (1,1)`
+* `[['a','b'],['c','d']].index_of_first_in_2d? (eq 'x') == none`
+-/
+def List.index_of_first_in_2d? [Inhabited T] (pred : T -> Bool) (list : List $ List T) : Option (Nat × Nat) :=
+    if list.length = 0 then none else fff 0 0
+    -- TODO(optim): try "enum_2d" |> flatten |> "find_index"
+where
+    fff := fun y x => -- TODO(refactor): rename `fff` -> ?
+        /- dbg_trace "y={y} x={x}" -/
+        if list.contains_index y && list[y]!.contains_index x && pred list[y]![x]! then
+            some (y, x)
+        else
+            if x + 1 < list[y]!.length then
+                fff y (x+1)
+            else if y + 1 < list.length then
+                fff (y+1) 0
+            else
+                none
+
+#guard some (0,0) == [['a','b'],['c','d']].index_of_first_in_2d? (eq 'a')
+#guard some (0,1) == [['a','b'],['c','d']].index_of_first_in_2d? (eq 'b')
+#guard some (1,0) == [['a','b'],['c','d']].index_of_first_in_2d? (eq 'c')
+#guard some (1,1) == [['a','b'],['c','d']].index_of_first_in_2d? (eq 'd')
+#guard none       == [['a','b'],['c','d']].index_of_first_in_2d? (eq 'x')
+#guard some (2,1) == [['a','b'],[],['d','A']].index_of_first_in_2d? (eq 'A')
+
+
+
+/-- Numbers from `start` to `start+n` exclusive, in increasing order.
+* `range_from 0 4 == [0,1,2,3]`
+* `range_from 3 4 == [3,4,5,6]`
+-/
+def range_from (start count : Nat) : List Nat :=
+    /- List.replicate count Unit.unit |>.enumFrom start |>.map Prod.fst -/
+    List.range count |>.map (. + start)
+
+#guard List.range 42 == range_from 0 42
+#guard [0,1,2,3] == range_from 0 4
+#guard [3,4,5,6] == range_from 3 4
+#guard [] == range_from 3 0
+
+
+
+/-- Numbers from `min` to `max` inclusive, in increasing order. UB if `min` > `max`
+* `range_from 0 2 == [0,1,2]`
+* `range_from 3 5 == [3,4,5]`
+-/
+def range_ (min max : Nat) : List Nat :=
+    List.range (max + 1 - min) |>.map (. + min)
+
+#guard [0,1,2] == range_ 0 2
+#guard [3,4,5] == range_ 3 5
+#guard [3] == range_ 3 3
+#guard [] == range_ 3 2
 

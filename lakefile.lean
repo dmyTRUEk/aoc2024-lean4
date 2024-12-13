@@ -18,7 +18,10 @@ lean_exe "day11" where
 lean_exe "day11p2" where
   root := `aoc2024.day11.part2
 
-
+lean_exe "day12" where
+  root := `aoc2024.day12.part1
+lean_exe "day12p2" where
+  root := `aoc2024.day12.part2
 
 
 
