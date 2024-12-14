@@ -396,3 +396,128 @@ def Vec2n.add_to_xy (v : Vec2n) (n : Nat) : Vec2n :=
 #guard { x:=42, y:=42 : Vec2n } == Vec2n.zero.add_to_xy 42
 #guard { x:=14, y:=15 : Vec2n } == { x:=4, y:=5 : Vec2n }.add_to_xy 10
 
+
+
+/-- 2d vector of `Int`s. -/
+structure Vec2i where
+    x : Int
+    y : Int
+deriving Repr, BEq
+
+/-- Zero vector. -/
+def Vec2i.zero : Vec2i := { x:=0, y:=0 }
+
+#guard { x:=0, y:=0 : Vec2i } == Vec2i.zero
+
+
+instance : Inhabited Vec2i where
+    default := Vec2i.zero
+
+#guard { x:=0, y:=0 : Vec2i } == (default : Vec2i)
+#guard { x:=0, y:=0 : Vec2i } == default
+
+
+/-- Parse from string.
+* `Vec2i.from_string? "42,-145" = some { x:=42, y:=-145 : Vec2i }`
+* `Vec2i.from_string? "X=42, Y=-145" "X=" ", Y=" = some { x:=42, y:=-145 : Vec2i }`
+* `Vec2i.from_string? "abc" = none`
+-/
+def Vec2i.from_string? (s : String) (prefix_ : String := "") (sep : String := ",") : Option Vec2i :=
+    if let [some x, some y] := s.drop prefix_.length |>.splitOn sep |>.map String.toInt? then
+        some { x, y : Vec2i }
+    else
+        none
+
+#guard some { x:=42, y:=-145 : Vec2i } == Vec2i.from_string? "42,-145"
+#guard some { x:=42, y:=-145 : Vec2i } == Vec2i.from_string? "X=42, Y=-145" "X=" ", Y="
+#guard (none : Option Vec2i) == Vec2i.from_string? "abc"
+
+
+/-- Parse from string.
+* `Vec2i.from_string! "42,-145" = { x:=42, y:=-145 : Vec2i }`
+* `Vec2i.from_string! "X=42, Y=-145" "X=" ", Y=" = { x:=42, y:=-145 : Vec2i }`
+* `Vec2i.from_string! "abc" = { x:=0, y:=0 : Vec2i }`
+-/
+def Vec2i.from_string! (s : String) (prefix_ : String := "") (sep : String := ",") : Vec2i :=
+    Vec2i.from_string? s prefix_ sep |>.getD default
+
+#guard { x:=42, y:=-145 : Vec2i } == Vec2i.from_string! "42,-145"
+#guard { x:=42, y:=-145 : Vec2i } == Vec2i.from_string! "X=42, Y=-145" "X=" ", Y="
+#guard { x:=0, y:=0 : Vec2i } == Vec2i.from_string! "abc"
+
+
+/-- For debug only! -/
+def Vec2i.toString (v : Vec2i) : String :=
+    s!"[{v.x} {v.y}]"
+
+
+
+/-- Sublist of a `list` starting from index `start` with (max) length `len`.
+* `['a','b','c','d','e','f'].sublist 1 3 = ['b','c','d']`
+-/
+def List.sublist (list : List T) (start len : Nat) : List T :=
+    list.drop start |>.take len
+
+#guard ['b','c','d'] == ['a','b','c','d','e','f'].sublist 1 3
+
+
+
+/-- Sizes of a 2d list. UB if `list2d` is not rectangular.
+* `[['a','b'],['c','d'],['e','f']].sizes = (3, 2)`
+-/
+def List.sizes (list2d : List $ List T) : (Nat × Nat) :=
+    -- TODO: assert is rectangular
+    (list2d.length, list2d[0]!.length)
+
+#guard (3, 2) == [['a','b'],['c','d'],['e','f']].sizes
+
+
+
+/-- Replicate string `s` `n` times.
+* `"abc".replicate 3 = "abcabcabc"`
+* `String.replicate 3 "abc" = "abcabcabc"`
+-/
+def String.replicate (n : Nat) (s : String) : String :=
+    List.replicate n s |> join
+
+#guard "abcabcabc" == "abc".replicate 3
+#guard "abcabcabc" == String.replicate 3 "abc"
+
+
+
+/-- Join strings with separator.
+* `"-".join_ ["a", "b", "c"] = "a-b-c"`
+-/
+def String.join_ (sep : String) (ss : List String) : String :=
+    sep.intercalate ss
+
+#guard "a-b-c" == "-".join_ ["a", "b", "c"]
+
+
+
+/-- Join list of strings with separator.
+* `["a", "b", "c"].join_ "-" = "a-b-c"`
+-/
+def List.join_ (sep : String) (ss: List String) : String :=
+    sep.intercalate ss
+
+#guard "a-b-c" == ["a", "b", "c"].join_ "-"
+
+
+
+/-- TODO -/
+def List.replace2d (list2d : List $ List T) (y x : Nat) (v : T) : List $ List T :=
+    list2d.set y (list2d[y]!.set x v)
+
+#guard [['x','b'],['c','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].replace2d 0 0 'x'
+#guard [['a','x'],['c','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].replace2d 0 1 'x'
+#guard [['a','b'],['x','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].replace2d 1 0 'x'
+#guard [['a','b'],['c','x'],['e','f']] == [['a','b'],['c','d'],['e','f']].replace2d 1 1 'x'
+#guard [['a','b'],['c','d'],['x','f']] == [['a','b'],['c','d'],['e','f']].replace2d 2 0 'x'
+#guard [['a','b'],['c','d'],['e','x']] == [['a','b'],['c','d'],['e','f']].replace2d 2 1 'x'
+
+
+
+/- def List.get2d! (list2d : List $ List T) (y x : Nat) : List $ List T := -/
+/-     list2d[y]![x]! -/
+
