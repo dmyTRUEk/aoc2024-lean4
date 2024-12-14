@@ -5,45 +5,22 @@ import aoc2024.day13.input
 
 
 
-structure Vec2d where
-    x : Nat
-    y : Nat
-deriving Repr, BEq
+def Vec2n.xyp_from_string (s : String) : Vec2n :=
+    Vec2n.from_string! s "Button A: X+" ", Y+"
 
-def Vec2d.zero : Vec2d := { x:=0, y:=0 }
+#eval Vec2n.xyp_from_string "Button A: X+94, Y+34"
 
-#guard Vec2d.zero == Vec2d.zero
+def Vec2n.xye_from_string (s : String) : Vec2n :=
+    Vec2n.from_string! s "Prize: X=" ", Y="
 
-def Vec2d.toString (v : Vec2d) : String :=
-    s!"[{v.x} {v.y}]"
-
-def Vec2d.add_to_xy (v : Vec2d) (n : Nat) : Vec2d :=
-    { x := v.x + n, y := v.y + n }
-
-#eval Vec2d.zero.add_to_xy 42
-
-def Vec2d.xyp_from_string (s : String) : Vec2d :=
-    if let [some x, some y] := s.drop 12 |>.splitOn ", Y+" |>.map String.toNat? then
-        { x:=x, y:=y }
-    else
-        Vec2d.zero
-
-#eval Vec2d.xyp_from_string "Button A: X+94, Y+34"
-
-def Vec2d.xye_from_string (s : String) : Vec2d :=
-    if let [some x, some y] := s.drop 9 |>.splitOn ", Y=" |>.map String.toNat? then
-        { x:=x, y:=y }
-    else
-        Vec2d.zero
-
-#eval Vec2d.xye_from_string "Prize: X=8400, Y=5400"
+#eval Vec2n.xye_from_string "Prize: X=8400, Y=5400"
 
 
 
 structure ClawMachine where
-    a : Vec2d
-    b : Vec2d
-    prize : Vec2d
+    a : Vec2n
+    b : Vec2n
+    prize : Vec2n
 deriving Repr, BEq
 
 def ClawMachine.toString (cm : ClawMachine) : String :=
@@ -71,9 +48,9 @@ def parse_input (input : String) : List ClawMachine :=
         |>.filterMap (fun lines =>
             if let [a_str, b_str, p_str] := lines then
             some {
-                a := Vec2d.xyp_from_string a_str
-                b := Vec2d.xyp_from_string b_str
-                prize := Vec2d.xye_from_string p_str
+                a := Vec2n.xyp_from_string a_str
+                b := Vec2n.xyp_from_string b_str
+                prize := Vec2n.xye_from_string p_str
             }
             else none
         )
