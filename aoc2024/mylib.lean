@@ -31,7 +31,7 @@ def Int.abs (n : Int) : Int :=
 * `[[1,2],[3,4],[5,6]].transpose = [[1,3,5],[2,4,6]]`
 * `[[1,3,5],[2,4,6]].transpose = [[1,2],[3,4],[5,6]]`
 -/
-def List.transpose (list2d : List $ List T) [Inhabited T] : List $ List T :=
+def List.transpose [Inhabited T] (list2d : List $ List T) : List $ List T :=
     assert! true -- TODO: all have same length
     let ly := list2d.length
     let lx := list2d[0]!.length
@@ -319,7 +319,7 @@ def range_from (start count : Nat) : List Nat :=
 
 
 
-/-- Numbers from `min` to `max` inclusive, in increasing order. UB if `min` > `max`
+/-- Numbers from `min` to `max` inclusive, in increasing order. UB if `min > max`
 * `range_from 0 2 == [0,1,2]`
 * `range_from 3 5 == [3,4,5]`
 -/
@@ -520,4 +520,76 @@ def List.replace2d (list2d : List $ List T) (y x : Nat) (v : T) : List $ List T 
 
 /- def List.get2d! (list2d : List $ List T) (y x : Nat) : List $ List T := -/
 /-     list2d[y]![x]! -/
+
+
+
+/-- Split `list` at index `n`.
+* `[1,2,3,4,5].split_at 2 = ([1,2], [3,4,5])`
+-/
+def List.split_at (n : Nat) (list : List T) : (List T × List T) :=
+    (list.take n, list.drop n)
+
+#guard ([1,2], [3,4,5]) == [1,2,3,4,5].split_at 2
+
+
+
+/-- Get `list` in chunks of lenght `n`. UB if `n = 0`.
+* `[1,2,3,4,5,6].chunks 2 = [[1,2],[3,4],[5,6]]`
+* `[1,2,3,4,5,6].chunks 3 = [[1,2,3],[4,5,6]]`
+* `[1,2,3,4,5,6,7].chunks 2 = [[1,2],[3,4],[5,6]]`
+* `[1,2,3,4,5,6,7].chunks 3 = [[1,2,3],[4,5,6]]`
+-/
+partial def List.chunks (n : Nat) (list : List T) : List $ List T :=
+    if n == 0 || list.length < n then [] else
+    let (h, t) := list.split_at n
+    h :: t.chunks n
+
+#guard [[1,2],[3,4],[5,6]] == [1,2,3,4,5,6].chunks 2
+#guard [[1,2,3],[4,5,6]] == [1,2,3,4,5,6].chunks 3
+#guard [[1,2],[3,4],[5,6]] == [1,2,3,4,5,6,7].chunks 2
+#guard [[1,2,3],[4,5,6]] == [1,2,3,4,5,6,7].chunks 3
+
+
+
+/-- View `list` in sliding windows of lenght `n`.
+* `[1,2,3,4,5].windows 2 == [[1,2],[2,3],[3,4],[4,5]]`
+* `[1,2,3,4,5].windows 3 == [[1,2,3],[2,3,4],[3,4,5]]`
+-/
+partial def List.windows (n : Nat) (list : List T) : List $ List T :=
+    if n == 0 || list.length < n then [] else
+    list.take n :: (list.drop 1 |>.windows n)
+
+#guard [[1,2],[2,3],[3,4],[4,5]] == [1,2,3,4,5].windows 2
+#guard [[1,2,3],[2,3,4],[3,4,5]] == [1,2,3,4,5].windows 3
+
+
+
+/-- View `list2d` in sliding windows of width×height = `wh`.
+* `[ [1,2,3], [4,5,6], [7,8,9] ].windows2d (2, 2) = [[[1,2],[4,5]], [[2,3],[5,6]], [[4,5],[7,8]], [[5,6],[8,9]]]`
+-/
+def List.windows2d (wh : Nat × Nat) (list2d : List $ List T) : List $ List $ List T :=
+    let (w, h) := wh
+    if w == 0 || h == 0 then [] else
+    list2d.windows h
+        |>.map (fun rows =>
+            let rows_windows := rows.map $ List.windows w
+            rows_windows.transpose
+        )
+        |>.flatten
+
+#guard [[[1,2],[4,5]], [[2,3],[5,6]], [[4,5],[7,8]], [[5,6],[8,9]]] == [ [1,2,3], [4,5,6], [7,8,9] ].windows2d (2, 2)
+
+
+
+/-- Reverse float division. Usefull for `.map`.
+* `Float.div_ 10. 20. = 2.`
+* `10..div_ 20. = 2.`
+* `([10., 20., 30.] |>.map $ Float.div_ 10.) = [1., 2., 3.]`
+-/
+def Float.div_ (denominator numerator : Float) : Float :=
+    numerator / denominator
+
+#guard 2. == Float.div_ 10. 20.
+#guard 2. == 10..div_ 20.
+#guard [1., 2., 3.] == ([10., 20., 30.] |>.map $ Float.div_ 10.)
 
