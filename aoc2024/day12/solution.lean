@@ -37,7 +37,7 @@ def RegionBounds.perimeter(rb : RegionBounds) : Nat := 2 * (rb.width + rb.height
 
 
 def find_regions_ (m : Map) (used : Used) : (List RegionBounds × Used) :=
-    if let some (y, x) := used.index_of_first_in_2d? (eq false) then
+    if let some (y, x) := used.index2d_of_first? (eq false) then
         /- sorry -/
         /- let plant_type := m[y]![x]! -- why doesn't work? -/
         let plant_type := m.get! y |>.get! x

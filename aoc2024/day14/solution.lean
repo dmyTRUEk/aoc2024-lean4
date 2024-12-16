@@ -70,7 +70,7 @@ def positions_to_map (positions : List Vec2n) (wh : Nat × Nat) : List $ List Na
     positions.foldl
         (fun m p =>
             let v := m[p.y]![p.x]!
-            m.replace2d p.y p.x (v+1)
+            m.set2d_yx (p.y, p.x) (v+1)
         )
         m0
 

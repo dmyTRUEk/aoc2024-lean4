@@ -1,4 +1,6 @@
--- mylib
+--- mylib
+
+-- TODO(refactor): put them in alphabetic order?
 
 -- TODO
 /- def todo := sorry -/
@@ -32,7 +34,7 @@ def Int.abs (n : Int) : Int :=
 * `[[1,3,5],[2,4,6]].transpose = [[1,2],[3,4],[5,6]]`
 -/
 def List.transpose [Inhabited T] (list2d : List $ List T) : List $ List T :=
-    assert! true -- TODO: all have same length
+    /- assert! true -- TODO: all have same length -/
     let ly := list2d.length
     let lx := list2d[0]!.length
     let ry := List.range ly
@@ -102,10 +104,10 @@ def ge [Ord T] (x y : T) : Bool := (compare x y).isGE
 
 
 /-- Apply `n` times function `f` to `arg`.
-* `apply_n 0 (. * 2) 1 == 1`
-* `apply_n 1 (. * 2) 1 == 2`
-* `apply_n 2 (. * 2) 1 == 4`
-* `apply_n 8 (. * 2) 1 == 256`
+* `apply_n 0 (. * 2) 1 = 1`
+* `apply_n 1 (. * 2) 1 = 2`
+* `apply_n 2 (. * 2) 1 = 4`
+* `apply_n 8 (. * 2) 1 = 256`
 -/
 def apply_n (n : Nat) (f : T -> T) (arg : T) : T :=
     if n <= 0 then arg else apply_n (n-1) f (f arg)
@@ -149,7 +151,7 @@ def String.to_list2d (input : String) : List $ List Char :=
 
 
 /-- Enumerate list elements.
-* `['a','b','c'].enumerate == [(0,'a'), (1,'b'), (2,'c')]`
+* `['a','b','c'].enumerate = [(0,'a'), (1,'b'), (2,'c')]`
 -/
 def List.enumerate : List T -> List (Nat × T) := List.enum
 
@@ -158,7 +160,7 @@ def List.enumerate : List T -> List (Nat × T) := List.enum
 
 
 /-- Unique elements of the list.
-* `[1,1,2,1,2,3,1,2,4,3,2,1].unique == [1,2,3,4]`
+* `[1,1,2,1,2,3,1,2,4,3,2,1].unique = [1,2,3,4]`
 -/
 def List.unique [BEq T] : Endomorphism $ List T :=
     /- (.|>.foldl (λ acc el ↦ if acc.contains el then acc else acc.concat el) []) -/
@@ -188,7 +190,7 @@ def List.all_unique [BEq T] (list : List T) : Bool :=
 
 
 /-- Map list of lists recursively.
-* `[[1,2],[3,4]].map_rec (. * 10) == [[10,20],[30,40]]`
+* `[[1,2],[3,4]].map_rec (. * 10) = [[10,20],[30,40]]`
 -/
 def List.map_rec (f : A -> B) (list : List $ List A) : List $ List B :=
     list.map (.|>.map f)
@@ -198,26 +200,26 @@ def List.map_rec (f : A -> B) (list : List $ List A) : List $ List B :=
 
 
 /-- Constant function.
-* `(const_fun true) 0     == true`
-* `(const_fun true) 10    == true`
-* `(const_fun true) "abc" == true`
-* `(const_fun true) "def" == true`
-* `(const_fun true) true  == true`
-* `(const_fun true) false == true`
+* `(const_fun true) 0     = true`
+* `(const_fun true) 10    = true`
+* `(const_fun true) "abc" = true`
+* `(const_fun true) "def" = true`
+* `(const_fun true) true  = true`
+* `(const_fun true) false = true`
 
-* `(const_fun 42) 0     == 42`
-* `(const_fun 42) 10    == 42`
-* `(const_fun 42) "abc" == 42`
-* `(const_fun 42) "def" == 42`
-* `(const_fun 42) true  == 42`
-* `(const_fun 42) false == 42`
+* `(const_fun 42) 0     = 42`
+* `(const_fun 42) 10    = 42`
+* `(const_fun 42) "abc" = 42`
+* `(const_fun 42) "def" = 42`
+* `(const_fun 42) true  = 42`
+* `(const_fun 42) false = 42`
 
-* `(const_fun "abc") 0     == "abc"`
-* `(const_fun "abc") 10    == "abc"`
-* `(const_fun "abc") "abc" == "abc"`
-* `(const_fun "abc") "def" == "abc"`
-* `(const_fun "abc") true  == "abc"`
-* `(const_fun "abc") false == "abc"`
+* `(const_fun "abc") 0     = "abc"`
+* `(const_fun "abc") 10    = "abc"`
+* `(const_fun "abc") "abc" = "abc"`
+* `(const_fun "abc") "def" = "abc"`
+* `(const_fun "abc") true  = "abc"`
+* `(const_fun "abc") false = "abc"`
 -/
 def const_fun : B -> (A -> B) := (fun _ => .)
 
@@ -273,13 +275,13 @@ def List.contains_index (index : Nat) (list : List T) : Bool :=
 
 
 /-- Index of element for which `pred` evaluates to true.
-* `[['a','b'],['c','d']].index_of_first_in_2d? (eq 'a') == some (0,0)`
-* `[['a','b'],['c','d']].index_of_first_in_2d? (eq 'b') == some (0,1)`
-* `[['a','b'],['c','d']].index_of_first_in_2d? (eq 'c') == some (1,0)`
-* `[['a','b'],['c','d']].index_of_first_in_2d? (eq 'd') == some (1,1)`
-* `[['a','b'],['c','d']].index_of_first_in_2d? (eq 'x') == none`
+* `[['a','b'],['c','d']].index2d_of_first? (eq 'a') = some (0,0)`
+* `[['a','b'],['c','d']].index2d_of_first? (eq 'b') = some (0,1)`
+* `[['a','b'],['c','d']].index2d_of_first? (eq 'c') = some (1,0)`
+* `[['a','b'],['c','d']].index2d_of_first? (eq 'd') = some (1,1)`
+* `[['a','b'],['c','d']].index2d_of_first? (eq 'x') = none`
 -/
-def List.index_of_first_in_2d? [Inhabited T] (pred : T -> Bool) (list : List $ List T) : Option (Nat × Nat) :=
+def List.index2d_of_first? [Inhabited T] (pred : T -> Bool) (list : List $ List T) : Option $ Nat × Nat :=
     if list.length = 0 then none else fff 0 0
     -- TODO(optim): try "enum_2d" |> flatten |> "find_index"
 where
@@ -295,18 +297,18 @@ where
             else
                 none
 
-#guard some (0,0) == [['a','b'],['c','d']].index_of_first_in_2d? (eq 'a')
-#guard some (0,1) == [['a','b'],['c','d']].index_of_first_in_2d? (eq 'b')
-#guard some (1,0) == [['a','b'],['c','d']].index_of_first_in_2d? (eq 'c')
-#guard some (1,1) == [['a','b'],['c','d']].index_of_first_in_2d? (eq 'd')
-#guard none       == [['a','b'],['c','d']].index_of_first_in_2d? (eq 'x')
-#guard some (2,1) == [['a','b'],[],['d','A']].index_of_first_in_2d? (eq 'A')
+#guard some (0,0) == [['a','b'],['c','d']].index2d_of_first? (eq 'a')
+#guard some (0,1) == [['a','b'],['c','d']].index2d_of_first? (eq 'b')
+#guard some (1,0) == [['a','b'],['c','d']].index2d_of_first? (eq 'c')
+#guard some (1,1) == [['a','b'],['c','d']].index2d_of_first? (eq 'd')
+#guard none       == [['a','b'],['c','d']].index2d_of_first? (eq 'x')
+#guard some (2,1) == [['a','b'],[],['d','A']].index2d_of_first? (eq 'A')
 
 
 
 /-- Numbers from `start` to `start+n` exclusive, in increasing order.
-* `range_from 0 4 == [0,1,2,3]`
-* `range_from 3 4 == [3,4,5,6]`
+* `range_from 0 4 = [0,1,2,3]`
+* `range_from 3 4 = [3,4,5,6]`
 -/
 def range_from (start count : Nat) : List Nat :=
     /- List.replicate count Unit.unit |>.enumFrom start |>.map Prod.fst -/
@@ -320,8 +322,8 @@ def range_from (start count : Nat) : List Nat :=
 
 
 /-- Numbers from `min` to `max` inclusive, in increasing order. UB if `min > max`
-* `range_from 0 2 == [0,1,2]`
-* `range_from 3 5 == [3,4,5]`
+* `range_from 0 2 = [0,1,2]`
+* `range_from 3 5 = [3,4,5]`
 -/
 def range_ (min max : Nat) : List Nat :=
     List.range (max + 1 - min) |>.map (. + min)
@@ -333,14 +335,17 @@ def range_ (min max : Nat) : List Nat :=
 
 
 
+-- TODO(refactor): unify Vec2n & Vec2i
+
 /-- 2d vector of `Nat`s. -/
 structure Vec2n where
     x : Nat
     y : Nat
 deriving Repr, BEq
 
+
 /-- Zero vector. -/
-def Vec2n.zero : Vec2n := { x:=0, y:=0 }
+def Vec2n.zero : Vec2n := { x:=0, y:=0 : Vec2n }
 
 #guard { x:=0, y:=0 : Vec2n } == Vec2n.zero
 
@@ -350,6 +355,22 @@ instance : Inhabited Vec2n where
 
 #guard { x:=0, y:=0 : Vec2n } == (default : Vec2n)
 #guard { x:=0, y:=0 : Vec2n } == default
+
+
+/-- `Vec2n` from product type.
+* `Vec2n.from_prod_xy (4, 5) = { x:=4, y:=5 : Vec2n }`
+-/
+def Vec2n.from_prod_xy (xy : Nat × Nat) : Vec2n := { x:=xy.1, y:=xy.2 }
+
+#guard { x:=4, y:=5 : Vec2n } == Vec2n.from_prod_xy (4, 5)
+
+
+/-- `Vec2n` from product type.
+* `Vec2n.from_prod_yx (5, 4) = { x:=4, y:=5 : Vec2n }`
+-/
+def Vec2n.from_prod_yx (yx : Nat × Nat) : Vec2n := { x:=yx.2, y:=yx.1 }
+
+#guard { x:=4, y:=5 : Vec2n } == Vec2n.from_prod_yx (5, 4)
 
 
 /-- Parse from string.
@@ -404,8 +425,9 @@ structure Vec2i where
     y : Int
 deriving Repr, BEq
 
+
 /-- Zero vector. -/
-def Vec2i.zero : Vec2i := { x:=0, y:=0 }
+def Vec2i.zero : Vec2i := { x:=0, y:=0 : Vec2i }
 
 #guard { x:=0, y:=0 : Vec2i } == Vec2i.zero
 
@@ -415,6 +437,22 @@ instance : Inhabited Vec2i where
 
 #guard { x:=0, y:=0 : Vec2i } == (default : Vec2i)
 #guard { x:=0, y:=0 : Vec2i } == default
+
+
+/-- `Vec2i` from product type.
+* `Vec2i.from_prod_yx (4, 5) = { x:=4, y:=5 : Vec2i }`
+-/
+def Vec2i.from_prod_yx (yx : Nat × Nat) : Vec2i := { x:=yx.2, y:=yx.1 }
+
+#guard { x:=4, y:=5 : Vec2i } == Vec2i.from_prod_yx (5, 4)
+
+
+/-- `Vec2i` from product type.
+* `Vec2i.from_prod_xy (4, 5) = { x:=4, y:=5 : Vec2i }`
+-/
+def Vec2i.from_prod_xy (xy : Nat × Nat) : Vec2i := { x:=xy.1, y:=xy.2 }
+
+#guard { x:=4, y:=5 : Vec2i } == Vec2i.from_prod_xy (4, 5)
 
 
 /-- Parse from string.
@@ -465,7 +503,7 @@ def List.sublist (list : List T) (start len : Nat) : List T :=
 /-- Sizes of a 2d list. UB if `list2d` is not rectangular.
 * `[['a','b'],['c','d'],['e','f']].sizes = (3, 2)`
 -/
-def List.sizes (list2d : List $ List T) : (Nat × Nat) :=
+def List.sizes (list2d : List $ List T) : Nat × Nat :=
     -- TODO: assert is rectangular
     (list2d.length, list2d[0]!.length)
 
@@ -505,17 +543,45 @@ def List.join_ (sep : String) (ss: List String) : String :=
 
 
 
-/-- TODO -/
-def List.replace2d (list2d : List $ List T) (y x : Nat) (v : T) : List $ List T :=
-    list2d.set y (list2d[y]!.set x v)
 
-#guard [['x','b'],['c','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].replace2d 0 0 'x'
-#guard [['a','x'],['c','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].replace2d 0 1 'x'
-#guard [['a','b'],['x','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].replace2d 1 0 'x'
-#guard [['a','b'],['c','x'],['e','f']] == [['a','b'],['c','d'],['e','f']].replace2d 1 1 'x'
-#guard [['a','b'],['c','d'],['x','f']] == [['a','b'],['c','d'],['e','f']].replace2d 2 0 'x'
-#guard [['a','b'],['c','d'],['e','x']] == [['a','b'],['c','d'],['e','f']].replace2d 2 1 'x'
 
+/-- Set element at indices `y` `x` to `new_value`. UB if indices out of bounds.
+* `[['a','b'],['c','d'],['e','f']].set2d_v {x:=0, y:=0 : Vec2n} 'x' = [['x','b'],['c','d'],['e','f']]`
+* `[['a','b'],['c','d'],['e','f']].set2d_v {x:=1, y:=0 : Vec2n} 'x' = [['a','x'],['c','d'],['e','f']]`
+* `[['a','b'],['c','d'],['e','f']].set2d_v {x:=0, y:=1 : Vec2n} 'x' = [['a','b'],['x','d'],['e','f']]`
+* `[['a','b'],['c','d'],['e','f']].set2d_v {x:=1, y:=1 : Vec2n} 'x' = [['a','b'],['c','x'],['e','f']]`
+* `[['a','b'],['c','d'],['e','f']].set2d_v {x:=0, y:=2 : Vec2n} 'x' = [['a','b'],['c','d'],['x','f']]`
+* `[['a','b'],['c','d'],['e','f']].set2d_v {x:=1, y:=2 : Vec2n} 'x' = [['a','b'],['c','d'],['e','x']]`
+-/
+def List.set2d_v (list2d : List $ List T) (v : Vec2n) (new_value : T) : List $ List T :=
+    let { y, x } := v
+    list2d.set y (list2d[y]!.set x new_value)
+
+#guard [['x','b'],['c','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].set2d_v {x:=0, y:=0 : Vec2n} 'x'
+#guard [['a','x'],['c','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].set2d_v {x:=1, y:=0 : Vec2n} 'x'
+#guard [['a','b'],['x','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].set2d_v {x:=0, y:=1 : Vec2n} 'x'
+#guard [['a','b'],['c','x'],['e','f']] == [['a','b'],['c','d'],['e','f']].set2d_v {x:=1, y:=1 : Vec2n} 'x'
+#guard [['a','b'],['c','d'],['x','f']] == [['a','b'],['c','d'],['e','f']].set2d_v {x:=0, y:=2 : Vec2n} 'x'
+#guard [['a','b'],['c','d'],['e','x']] == [['a','b'],['c','d'],['e','f']].set2d_v {x:=1, y:=2 : Vec2n} 'x'
+
+
+/-- Set element at indices `y` `x` to `new_value`. UB if indices out of bounds.
+* `[['a','b'],['c','d'],['e','f']].set2d_yx 0 0 'N' = [['N','b'],['c','d'],['e','f']]`
+* `[['a','b'],['c','d'],['e','f']].set2d_yx 0 1 'N' = [['a','N'],['c','d'],['e','f']]`
+* `[['a','b'],['c','d'],['e','f']].set2d_yx 1 0 'N' = [['a','b'],['N','d'],['e','f']]`
+* `[['a','b'],['c','d'],['e','f']].set2d_yx 1 1 'N' = [['a','b'],['c','N'],['e','f']]`
+* `[['a','b'],['c','d'],['e','f']].set2d_yx 2 0 'N' = [['a','b'],['c','d'],['N','f']]`
+* `[['a','b'],['c','d'],['e','f']].set2d_yx 2 1 'N' = [['a','b'],['c','d'],['e','N']]`
+-/
+def List.set2d_yx (list2d : List $ List T) (yx : Nat × Nat) (new_value : T) : List $ List T :=
+    list2d.set2d_v (Vec2n.from_prod_yx yx) new_value
+
+#guard [['x','b'],['c','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].set2d_yx (0, 0) 'x'
+#guard [['a','x'],['c','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].set2d_yx (0, 1) 'x'
+#guard [['a','b'],['x','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].set2d_yx (1, 0) 'x'
+#guard [['a','b'],['c','x'],['e','f']] == [['a','b'],['c','d'],['e','f']].set2d_yx (1, 1) 'x'
+#guard [['a','b'],['c','d'],['x','f']] == [['a','b'],['c','d'],['e','f']].set2d_yx (2, 0) 'x'
+#guard [['a','b'],['c','d'],['e','x']] == [['a','b'],['c','d'],['e','f']].set2d_yx (2, 1) 'x'
 
 
 /- def List.get2d! (list2d : List $ List T) (y x : Nat) : List $ List T := -/
@@ -526,7 +592,7 @@ def List.replace2d (list2d : List $ List T) (y x : Nat) (v : T) : List $ List T 
 /-- Split `list` at index `n`.
 * `[1,2,3,4,5].split_at 2 = ([1,2], [3,4,5])`
 -/
-def List.split_at (n : Nat) (list : List T) : (List T × List T) :=
+def List.split_at (n : Nat) (list : List T) : List T × List T :=
     (list.take n, list.drop n)
 
 #guard ([1,2], [3,4,5]) == [1,2,3,4,5].split_at 2
@@ -552,8 +618,8 @@ partial def List.chunks (n : Nat) (list : List T) : List $ List T :=
 
 
 /-- View `list` in sliding windows of lenght `n`.
-* `[1,2,3,4,5].windows 2 == [[1,2],[2,3],[3,4],[4,5]]`
-* `[1,2,3,4,5].windows 3 == [[1,2,3],[2,3,4],[3,4,5]]`
+* `[1,2,3,4,5].windows 2 = [[1,2],[2,3],[3,4],[4,5]]`
+* `[1,2,3,4,5].windows 3 = [[1,2,3],[2,3,4],[3,4,5]]`
 -/
 partial def List.windows (n : Nat) (list : List T) : List $ List T :=
     if n == 0 || list.length < n then [] else
