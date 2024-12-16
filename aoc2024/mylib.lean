@@ -10,6 +10,13 @@
 
 
 
+class HAddExcl (α : Type u) (β : Type v) (γ : outParam (Type w)) where
+    h_add_excl : α → β → γ
+
+infixl:65 "+!" => HAddExcl.h_add_excl
+
+
+
 /-- Endomorphism - function whose domain = codomain (image). -/
 def Endomorphism T := T -> T
 
@@ -305,6 +312,23 @@ where
 #guard some (2,1) == [['a','b'],[],['d','A']].index2d_of_first? (eq 'A')
 
 
+/-- Index of element for which `pred` evaluates to true.
+* `[['a','b'],['c','d']].index2d_of_first! (eq 'a') = (0,0)`
+* `[['a','b'],['c','d']].index2d_of_first! (eq 'b') = (0,1)`
+* `[['a','b'],['c','d']].index2d_of_first! (eq 'c') = (1,0)`
+* `[['a','b'],['c','d']].index2d_of_first! (eq 'd') = (1,1)`
+* `[['a','b'],['c','d']].index2d_of_first! (eq 'x') = (0,0)`
+-/
+def List.index2d_of_first! [Inhabited T] (pred : T -> Bool) (list : List $ List T) : Nat × Nat :=
+    list.index2d_of_first? pred |>.get!
+
+#guard (0,0) == [['a','b'],['c','d']].index2d_of_first! (eq 'a')
+#guard (0,1) == [['a','b'],['c','d']].index2d_of_first! (eq 'b')
+#guard (1,0) == [['a','b'],['c','d']].index2d_of_first! (eq 'c')
+#guard (1,1) == [['a','b'],['c','d']].index2d_of_first! (eq 'd')
+#guard (0,0) == [['a','b'],['c','d']].index2d_of_first! (eq 'x')
+#guard (2,1) == [['a','b'],[],['d','A']].index2d_of_first! (eq 'A')
+
 
 /-- Numbers from `start` to `start+n` exclusive, in increasing order.
 * `range_from 0 4 = [0,1,2,3]`
@@ -341,7 +365,7 @@ def range_ (min max : Nat) : List Nat :=
 structure Vec2n where
     x : Nat
     y : Nat
-deriving Repr, BEq
+deriving Repr, BEq, Hashable
 
 
 /-- Zero vector. -/
@@ -357,7 +381,17 @@ instance : Inhabited Vec2n where
 #guard { x:=0, y:=0 : Vec2n } == default
 
 
-/-- `Vec2n` from product type.
+instance : Add Vec2n where
+    add a b := {
+        x := a.x + b.x,
+        y := a.y + b.y,
+        : Vec2n
+    }
+
+#guard { x:=6, y:=8 : Vec2n } == { x:=2, y:=3 : Vec2n } + { x:=4, y:=5 : Vec2n }
+
+
+/-- `Vec2n` from `Nat × Nat` as (x, y).
 * `Vec2n.from_prod_xy (4, 5) = { x:=4, y:=5 : Vec2n }`
 -/
 def Vec2n.from_prod_xy (xy : Nat × Nat) : Vec2n := { x:=xy.1, y:=xy.2 }
@@ -365,7 +399,7 @@ def Vec2n.from_prod_xy (xy : Nat × Nat) : Vec2n := { x:=xy.1, y:=xy.2 }
 #guard { x:=4, y:=5 : Vec2n } == Vec2n.from_prod_xy (4, 5)
 
 
-/-- `Vec2n` from product type.
+/-- `Vec2n` from `Nat × Nat` as (y, x).
 * `Vec2n.from_prod_yx (5, 4) = { x:=4, y:=5 : Vec2n }`
 -/
 def Vec2n.from_prod_yx (yx : Nat × Nat) : Vec2n := { x:=yx.2, y:=yx.1 }
@@ -402,6 +436,24 @@ def Vec2n.from_string! (s : String) (prefix_ : String := "") (sep : String := ",
 #guard { x:=0, y:=0 : Vec2n } == Vec2n.from_string! "abc"
 
 
+/-- `Vec2n` to `Nat × Nat` as (y, x).
+* `{ x:=4, y:=5 : Vec2n }.to_prod_yx = (5, 4)`
+-/
+def Vec2n.to_prod_yx (v : Vec2n) : Nat × Nat :=
+    (v.y, v.x)
+
+#guard (5, 4) == { x:=4, y:=5 : Vec2n }.to_prod_yx
+
+
+/-- `Vec2n` to `Nat × Nat` as (x, y).
+* `{ x:=4, y:=5 : Vec2n }.to_prod_xy = (4, 5)`
+-/
+def Vec2n.to_prod_xy (v : Vec2n) : Nat × Nat :=
+    (v.x, v.y)
+
+#guard (4, 5) == { x:=4, y:=5 : Vec2n }.to_prod_xy
+
+
 /-- For debug only! -/
 def Vec2n.toString (v : Vec2n) : String :=
     s!"[{v.x} {v.y}]"
@@ -423,7 +475,7 @@ def Vec2n.add_to_xy (v : Vec2n) (n : Nat) : Vec2n :=
 structure Vec2i where
     x : Int
     y : Int
-deriving Repr, BEq
+deriving Repr, BEq, Hashable
 
 
 /-- Zero vector. -/
@@ -439,20 +491,30 @@ instance : Inhabited Vec2i where
 #guard { x:=0, y:=0 : Vec2i } == default
 
 
-/-- `Vec2i` from product type.
-* `Vec2i.from_prod_yx (4, 5) = { x:=4, y:=5 : Vec2i }`
--/
-def Vec2i.from_prod_yx (yx : Nat × Nat) : Vec2i := { x:=yx.2, y:=yx.1 }
+instance : Add Vec2i where
+    add a b := {
+        x := a.x + b.x,
+        y := a.y + b.y,
+        : Vec2i
+    }
 
-#guard { x:=4, y:=5 : Vec2i } == Vec2i.from_prod_yx (5, 4)
+#guard { x:=6, y:=8 : Vec2i } == { x:=2, y:=3 : Vec2i } + { x:=4, y:=5 : Vec2i }
 
 
-/-- `Vec2i` from product type.
+/-- `Vec2i` from `Int × Int` as (x, y).
 * `Vec2i.from_prod_xy (4, 5) = { x:=4, y:=5 : Vec2i }`
 -/
 def Vec2i.from_prod_xy (xy : Nat × Nat) : Vec2i := { x:=xy.1, y:=xy.2 }
 
 #guard { x:=4, y:=5 : Vec2i } == Vec2i.from_prod_xy (4, 5)
+
+
+/-- `Vec2i` from `Int × Int` as (y, x).
+* `Vec2i.from_prod_yx (4, 5) = { x:=4, y:=5 : Vec2i }`
+-/
+def Vec2i.from_prod_yx (yx : Nat × Nat) : Vec2i := { x:=yx.2, y:=yx.1 }
+
+#guard { x:=4, y:=5 : Vec2i } == Vec2i.from_prod_yx (5, 4)
 
 
 /-- Parse from string.
@@ -484,9 +546,48 @@ def Vec2i.from_string! (s : String) (prefix_ : String := "") (sep : String := ",
 #guard { x:=0, y:=0 : Vec2i } == Vec2i.from_string! "abc"
 
 
+/-- `Vec2i` to `Int × Int` as (y, x).
+* `{ x:=4, y:=5 : Vec2i }.to_prod_yx = (5, 4)`
+-/
+def Vec2i.to_prod_yx (v : Vec2i) : Int × Int :=
+    (v.y, v.x)
+
+#guard (5, 4) == { x:=4, y:=5 : Vec2i }.to_prod_yx
+
+
+/-- `Vec2i` to `Int × Int` as (x, y).
+* `{ x:=4, y:=5 : Vec2i }.to_prod_xy = (4, 5)`
+-/
+def Vec2i.to_prod_xy (v : Vec2i) : Int × Int :=
+    (v.x, v.y)
+
+#guard (4, 5) == { x:=4, y:=5 : Vec2i }.to_prod_xy
+
+
 /-- For debug only! -/
 def Vec2i.toString (v : Vec2i) : String :=
     s!"[{v.x} {v.y}]"
+
+
+
+/- def Vec2n.to_vec2i (v : Vec2n) : Vec2i := -/
+/-     { x := v.x, y := v.y : Vec2i } -/
+/- #guard -/
+
+
+
+/-- Add `other : Vec2i` to `self : Vec2n`.
+* `{ x:=4, y:=7 : Vec2n } +! { x:=-1, y:=-2 : Vec2i } = { x:=3, y:=5 : Vec2n }`
+* `{ x:=1, y:=2 : Vec2n } +! { x:=-4, y:=-7 : Vec2i } = { x:=0, y:=0 : Vec2n }`
+-/
+instance : HAddExcl Vec2n Vec2i Vec2n where
+    h_add_excl := fun self other => {
+        x := self.x + other.x |>.toNat,
+        y := self.y + other.y |>.toNat,
+    }
+
+#guard { x:=3, y:=5 : Vec2n } == { x:=4, y:=7 : Vec2n } +! { x:=-1, y:=-2 : Vec2i }
+#guard { x:=0, y:=0 : Vec2n } == { x:=1, y:=2 : Vec2n } +! { x:=-4, y:=-7 : Vec2i }
 
 
 
@@ -543,6 +644,14 @@ def List.join_ (sep : String) (ss: List String) : String :=
 
 
 
+/-- Join list of chars with separator.
+* `['a', 'b', 'c'].join_ "-" = "a-b-c"`
+-/
+def List.join_chars (sep : String) (ss: List Char) : String :=
+    sep.intercalate $ ss.map (fun c => s!"{c}")
+
+#eval ['a', 'b', 'c'].join_chars "-"
+
 
 
 /-- Set element at indices `y` `x` to `new_value`. UB if indices out of bounds.
@@ -554,8 +663,7 @@ def List.join_ (sep : String) (ss: List String) : String :=
 * `[['a','b'],['c','d'],['e','f']].set2d_v {x:=1, y:=2 : Vec2n} 'x' = [['a','b'],['c','d'],['e','x']]`
 -/
 def List.set2d_v (list2d : List $ List T) (v : Vec2n) (new_value : T) : List $ List T :=
-    let { y, x } := v
-    list2d.set y (list2d[y]!.set x new_value)
+    list2d.set v.y (list2d[v.y]!.set v.x new_value)
 
 #guard [['x','b'],['c','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].set2d_v {x:=0, y:=0 : Vec2n} 'x'
 #guard [['a','x'],['c','d'],['e','f']] == [['a','b'],['c','d'],['e','f']].set2d_v {x:=1, y:=0 : Vec2n} 'x'
@@ -584,8 +692,48 @@ def List.set2d_yx (list2d : List $ List T) (yx : Nat × Nat) (new_value : T) : L
 #guard [['a','b'],['c','d'],['e','x']] == [['a','b'],['c','d'],['e','f']].set2d_yx (2, 1) 'x'
 
 
-/- def List.get2d! (list2d : List $ List T) (y x : Nat) : List $ List T := -/
+
+/-- Flatten `Option Option T` into `Option T`.
+* `(some $ some 42).flatten = some 42`
+* `(some $ some 42 : Option $ Option Nat).flatten = some 42`
+* `(some none      : Option $ Option Nat).flatten = none`
+* `(none           : Option $ Option Nat).flatten = none`
+-/
+def Option.flatten : Option (Option T) -> Option T
+    | some $ some v => some v
+    | _ => none
+
+#guard some 42 == (some $ some 42 : Option $ Option Nat).flatten
+#guard none    == (some none      : Option $ Option Nat).flatten
+#guard none    == (none           : Option $ Option Nat).flatten
+
+
+
+/- TODO -/
+/- def List.get2d_yx? (list2d : List $ List T) (yx : Nat × Nat) : Option T := -/
+/-     let (y, x) := yx -/
+/-     list2d[y]?.map (fun r => r[x]?) |>.flatten -/
+
+
+/- TODO -/
+/- def List.get2d_yx! [Inhabited T] (list2d : List $ List T) (y x : Nat) : T := -/
 /-     list2d[y]![x]! -/
+
+
+/-- Get element with indices given by `Vec2n` `v`. UB if out of bounds.
+* `[['a','b'],['c','d']].get2d_v! { x:=0, y:=0 : Vec2n } ='a'`
+* `[['a','b'],['c','d']].get2d_v! { x:=1, y:=0 : Vec2n } ='b'`
+* `[['a','b'],['c','d']].get2d_v! { x:=0, y:=1 : Vec2n } ='c'`
+* `[['a','b'],['c','d']].get2d_v! { x:=1, y:=1 : Vec2n } ='d'`
+-/
+def List.get2d_v! [Inhabited T] (list2d : List $ List T) (v : Vec2n) : T :=
+    let { x, y } := v
+    list2d[y]![x]!
+
+#guard 'a' == [['a','b'],['c','d']].get2d_v! { x:=0, y:=0 : Vec2n }
+#guard 'b' == [['a','b'],['c','d']].get2d_v! { x:=1, y:=0 : Vec2n }
+#guard 'c' == [['a','b'],['c','d']].get2d_v! { x:=0, y:=1 : Vec2n }
+#guard 'd' == [['a','b'],['c','d']].get2d_v! { x:=1, y:=1 : Vec2n }
 
 
 
@@ -658,4 +806,43 @@ def Float.div_ (denominator numerator : Float) : Float :=
 #guard 2. == Float.div_ 10. 20.
 #guard 2. == 10..div_ 20.
 #guard [1., 2., 3.] == ([10., 20., 30.] |>.map $ Float.div_ 10.)
+
+
+
+/-- Juxt - map value `a` by functions `fs`.
+* `[(. * 2), (. + 5), (. / 2)].juxt 10 = [20, 15, 5]`
+-/
+def List.juxt {A B : Type} (fs: List $ A -> B) (a : A) : List B :=
+    fs.map (fun f => f a)
+
+#guard [20, 15, 5] == [(. * 2), (. + 5), (. / 2)].juxt 10
+
+
+
+/-- Swap elements in product type.
+* `(1, 'a').swap = ('a', 1)`
+-/
+def Prod.swap (prod : A × B) : B × A := (prod.snd, prod.fst)
+
+#guard ('a', 1) == (1, 'a').swap
+
+
+
+/-- Map of characters to string.
+* `[['a','b','c'],['d','e','f'],['g','h','i']].as_map_to_string = "a b c\nd e f\ng h i"`
+-/
+def List.as_map_to_string (list2d : List $ List Char) : String :=
+    list2d
+        |>.map (fun l => l.join_chars " ")
+        |>.join_ "\n"
+
+#guard "a b c\nd e f\ng h i" == [['a','b','c'],['d','e','f'],['g','h','i']].as_map_to_string
+
+
+
+/- def List.modify2d_yx (list2d : List $ List T) (yx : Nat × Nat) (f : T -> T) : List $ List T := -/
+/-     let (y, x) := yx -/
+/-     sorry -/
+
+/- #eval [[]] -/
 
