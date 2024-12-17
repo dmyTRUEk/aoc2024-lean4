@@ -1,12 +1,16 @@
 --- vec2i
 
+import aoc2024.mylib.int
+
+
 -- TODO(refactor): unify Vec2n & Vec2i
 
 /-- 2d vector of `Int`s. -/
 structure Vec2i where
     x : Int
     y : Int
-deriving Repr, BEq, Hashable
+deriving Repr, BEq, Hashable, Ord
+
 
 
 /-- Zero vector. -/
@@ -15,11 +19,13 @@ def Vec2i.zero : Vec2i := { x:=0, y:=0 : Vec2i }
 #guard { x:=0, y:=0 : Vec2i } == Vec2i.zero
 
 
+
 instance : Inhabited Vec2i where
     default := Vec2i.zero
 
 #guard { x:=0, y:=0 : Vec2i } == (default : Vec2i)
 #guard { x:=0, y:=0 : Vec2i } == default
+
 
 
 instance : Add Vec2i where
@@ -32,10 +38,11 @@ instance : Add Vec2i where
 #guard { x:=6, y:=8 : Vec2i } == { x:=2, y:=3 : Vec2i } + { x:=4, y:=5 : Vec2i }
 
 
+
 /-- `Vec2i` from `Int × Int` as (x, y).
 * `Vec2i.from_prod_xy (4, 5) = { x:=4, y:=5 : Vec2i }`
 -/
-def Vec2i.from_prod_xy (xy : Nat × Nat) : Vec2i := { x:=xy.1, y:=xy.2 }
+def Vec2i.from_prod_xy (xy : Int × Int) : Vec2i := { x:=xy.1, y:=xy.2 }
 
 #guard { x:=4, y:=5 : Vec2i } == Vec2i.from_prod_xy (4, 5)
 
@@ -43,9 +50,10 @@ def Vec2i.from_prod_xy (xy : Nat × Nat) : Vec2i := { x:=xy.1, y:=xy.2 }
 /-- `Vec2i` from `Int × Int` as (y, x).
 * `Vec2i.from_prod_yx (4, 5) = { x:=4, y:=5 : Vec2i }`
 -/
-def Vec2i.from_prod_yx (yx : Nat × Nat) : Vec2i := { x:=yx.2, y:=yx.1 }
+def Vec2i.from_prod_yx (yx : Int × Int) : Vec2i := { x:=yx.2, y:=yx.1 }
 
 #guard { x:=4, y:=5 : Vec2i } == Vec2i.from_prod_yx (5, 4)
+
 
 
 /-- Parse from string.
@@ -77,6 +85,7 @@ def Vec2i.from_string! (s : String) (prefix_ : String := "") (sep : String := ",
 #guard { x:=0, y:=0 : Vec2i } == Vec2i.from_string! "abc"
 
 
+
 /-- `Vec2i` to `Int × Int` as (y, x).
 * `{ x:=4, y:=5 : Vec2i }.to_prod_yx = (5, 4)`
 -/
@@ -95,9 +104,30 @@ def Vec2i.to_prod_xy (v : Vec2i) : Int × Int :=
 #guard (4, 5) == { x:=4, y:=5 : Vec2i }.to_prod_xy
 
 
+
 /-- For debug only! -/
-def Vec2i.toString (v : Vec2i) : String :=
+def Vec2i.to_string (v : Vec2i) : String :=
     s!"[{v.x} {v.y}]"
 
 
+
+/-- Add `n` to both `x` & `y`.
+* `{ x:=-4, y:=5 : Vec2i }.add_to_xy 10 = { x:=6, y:=15 }`
+* `Vec2i.zero.add_to_xy 42 ={ x:=42, y:=42 }`
+-/
+def Vec2i.add_to_xy (v : Vec2i) (n : Int) : Vec2i :=
+    { x := v.x + n, y := v.y + n }
+
+#guard { x:=42, y:=42 : Vec2i } == Vec2i.zero.add_to_xy 42
+#guard { x:=6, y:=15 : Vec2i } == { x:=-4, y:=5 : Vec2i }.add_to_xy 10
+
+
+
+/-- L1 distance from `self` to `other`.
+* `{ x:=-3, y:=4 : Vec2i }.l1_distance_to { x:=7, y:=-8 : Vec2i } = 22`
+-/
+def Vec2i.l1_distance_to (self other : Vec2i) : Nat :=
+    self.x.distance_to other.x + self.y.distance_to other.y
+
+#guard 22 == { x:=-3, y:=4 : Vec2i }.l1_distance_to { x:=7, y:=-8 : Vec2i }
 

@@ -24,21 +24,6 @@ def Endomorphism T := T -> T
 
 
 
-/-- Absolute value of the `Int`.
-* `( 42 : Int).abs = 42`
-* `(-42 : Int).abs = 42`
--/
-def Int.abs (n : Int) : Int :=
-    if n >= 0 then n else -n
-
-#guard ( 42 : Int).abs == 42
-#guard (-42 : Int).abs == 42
-
-
-
-
-
-
 /-- Equals function. -/
 def eq [BEq T] (x y : T) : Bool := x == y
 /-- Not Equals function. -/
@@ -67,8 +52,6 @@ def apply_n (n : Nat) (f : T -> T) (arg : T) : T :=
 #guard apply_n 1 (. * 2) 1 == 2
 #guard apply_n 2 (. * 2) 1 == 4
 #guard apply_n 8 (. * 2) 1 == 256
-
-
 
 
 
@@ -118,22 +101,6 @@ def const_fun : B -> (A -> B) := (fun _ => .)
 
 
 -- TODO(feat): "anti"-`const_fun` -- `const_fun` always return first argument. "anti"-`const_fun` should always return second argument.
-
-
-
-/-- Flatten `Option Option T` into `Option T`.
-* `(some $ some 42).flatten = some 42`
-* `(some $ some 42 : Option $ Option Nat).flatten = some 42`
-* `(some none      : Option $ Option Nat).flatten = none`
-* `(none           : Option $ Option Nat).flatten = none`
--/
-def Option.flatten : Option (Option T) -> Option T
-    | some $ some v => some v
-    | _ => none
-
-#guard some 42 == (some $ some 42 : Option $ Option Nat).flatten
-#guard none    == (some none      : Option $ Option Nat).flatten
-#guard none    == (none           : Option $ Option Nat).flatten
 
 
 

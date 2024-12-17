@@ -128,22 +128,36 @@ def List.join_hashsets [BEq T] [Hashable T] (as : List $ Lean.HashSet T) : Lean.
         (fun acc el => acc.insertMany el)
         Lean.HashSet.empty
 
+def l1_distance_to_end (m : Map) (p : Vec2n) : Nat :=
+    let w := m.get! 0 |>.size
+    let p_end := { x:=w-2, y:=1 : Vec2n}
+    p.l1_distance_to p_end
+
 def Trace := Lean.HashSet Vec2n
 
+
+/-- Returns (score, trace, best_score). -/
 partial def dfs_tiles_on_best_paths
     (m : Map)
     (r : Reindeer)
     (score : Nat)
     (sh : StatesHistory)
     (trace : Trace)
-    : Option (Nat × Trace) × StatesHistory :=
+    (best_score : Option Nat)
+    : Option (Nat × Trace × Nat) × StatesHistory :=
     /- dbg_trace "\nr.x = {r.p.x}   r.y = {r.p.y}   dir = {r.dir.to_char}   m here = {m.get2d_v! r.p}" -/
     /- dbg_trace m_with_reindeer_to_string m r -/
     let trace := trace.insert r.p
+    dbg_trace "score = {score}   best_score = {best_score}   trace.size = {trace.size}   states_history.size = {sh.size}   l1_dist_to_end = {l1_distance_to_end m r.p}   r.p = {r.p.to_string}"
+    /- dbg_trace m.as_map_to_string -/
     if m.get2d_v! r.p == '#' then
         (none, sh)
+    else if best_score.is_some_and (fun best_score => score > best_score) then
+        /- dbg_trace "score > best_score" -/
+        (none, sh)
     else if m.get2d_v! r.p == 'E' then
-        (some (score, trace), sh)
+        dbg_trace "END HIT!!!"
+        (some (score, trace, score), sh)
     else
         let (is_worse, sh) :=
             if let some score_recorded := sh.find? r then
@@ -154,11 +168,12 @@ partial def dfs_tiles_on_best_paths
             else
                 (false, sh.insert r score)
         if is_worse then (none, sh) else
-        let (score_trace_f, sh) := dfs_tiles_on_best_paths m r.forward (score+1)  sh trace
+        let (score_trace_bs_f, sh) := dfs_tiles_on_best_paths m r.forward (score+1)  sh trace best_score
         -- TODO(optimization): if `# v #` or `# ^ #` or same vertical then dont check `.left` and `.right`
-        let (score_trace_l, sh) := dfs_tiles_on_best_paths m r.left  (score+1000) sh trace
-        let (score_trace_r, sh) := dfs_tiles_on_best_paths m r.right (score+1000) sh trace
-        let score_traces := [score_trace_f, score_trace_l, score_trace_r]
+        let (score_trace_bs_l, sh) := dfs_tiles_on_best_paths m r.left  (score+1000) sh trace $ score_trace_bs_f.map (fun s_t_bs => s_t_bs.2.2)
+        let (score_trace_bs_r, sh) := dfs_tiles_on_best_paths m r.right (score+1000) sh trace $ score_trace_bs_f.map (fun s_t_bs => s_t_bs.2.2)
+        let score_traces := [score_trace_bs_f, score_trace_bs_l, score_trace_bs_r]
+            |>.map $ Option.map (fun s_t_bs => (s_t_bs.1, s_t_bs.2.1))
         let min_score := score_traces
             |>.map (fun mst => mst.map Prod.fst)
             |>.minimum?.flatten
@@ -167,21 +182,33 @@ partial def dfs_tiles_on_best_paths
             |>.filter (fun score_trace => some score_trace.1 == min_score)
             |>.map Prod.snd
             |>.join_hashsets
-        (min_score.map (fun min_score => (min_score, traces)), sh)
+        (min_score.map (fun min_score => (min_score, traces, (best_score.min $ some min_score).getD min_score)), sh)
 
 
-def solve_part_two (input : String) : Option Nat :=
-    let (m, r) := parse_input input
-    let optimal_tiles := dfs_tiles_on_best_paths m r 0 (default : StatesHistory) Lean.HashSet.empty
+def dfs_count_optimal_tiles (m : Map) (r : Reindeer) : Option Nat :=
+    let result := dfs_tiles_on_best_paths
+        m
+        r
+        0
+        (default : StatesHistory)
+        Lean.HashSet.empty
+        (some 150000) -- 143580
+    let optimal_tiles := result
         |>.1
         |>.map Prod.snd
+        |>.map Prod.fst
     /- dbg_trace optimal_tiles.map (fun ot => ot.toList) -/
     optimal_tiles.map Lean.HashSet.size
 
 
-#eval solve_part_two example_1
-#guard example_1_answer_part_two == solve_part_two example_1
+def solve_part_two (input : String) : Option Nat :=
+    let (m, r) := parse_input input
+    dfs_count_optimal_tiles m r
 
-#eval solve_part_two example_2
-#guard example_2_answer_part_two == solve_part_two example_2
+
+/- #eval solve_part_two example_1 -/
+/- #guard example_1_answer_part_two == solve_part_two example_1 -/
+
+/- #eval solve_part_two example_2 -/
+/- #guard example_2_answer_part_two == solve_part_two example_2 -/
 

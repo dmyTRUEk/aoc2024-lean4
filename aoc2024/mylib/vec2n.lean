@@ -1,5 +1,8 @@
 --- vec2n
 
+import aoc2024.mylib.nat
+
+
 -- TODO(refactor): unify Vec2n & Vec2i
 
 /-- 2d vector of `Nat`s. -/
@@ -9,10 +12,12 @@ structure Vec2n where
 deriving Repr, BEq, Hashable, Ord
 
 
+
 /-- Zero vector. -/
 def Vec2n.zero : Vec2n := { x:=0, y:=0 : Vec2n }
 
 #guard { x:=0, y:=0 : Vec2n } == Vec2n.zero
+
 
 
 instance : Inhabited Vec2n where
@@ -20,6 +25,7 @@ instance : Inhabited Vec2n where
 
 #guard { x:=0, y:=0 : Vec2n } == (default : Vec2n)
 #guard { x:=0, y:=0 : Vec2n } == default
+
 
 
 instance : Add Vec2n where
@@ -30,6 +36,7 @@ instance : Add Vec2n where
     }
 
 #guard { x:=6, y:=8 : Vec2n } == { x:=2, y:=3 : Vec2n } + { x:=4, y:=5 : Vec2n }
+
 
 
 /-- `Vec2n` from `Nat × Nat` as (x, y).
@@ -46,6 +53,7 @@ def Vec2n.from_prod_xy (xy : Nat × Nat) : Vec2n := { x:=xy.1, y:=xy.2 }
 def Vec2n.from_prod_yx (yx : Nat × Nat) : Vec2n := { x:=yx.2, y:=yx.1 }
 
 #guard { x:=4, y:=5 : Vec2n } == Vec2n.from_prod_yx (5, 4)
+
 
 
 /-- Parse from string.
@@ -77,6 +85,7 @@ def Vec2n.from_string! (s : String) (prefix_ : String := "") (sep : String := ",
 #guard { x:=0, y:=0 : Vec2n } == Vec2n.from_string! "abc"
 
 
+
 /-- `Vec2n` to `Nat × Nat` as (y, x).
 * `{ x:=4, y:=5 : Vec2n }.to_prod_yx = (5, 4)`
 -/
@@ -95,18 +104,30 @@ def Vec2n.to_prod_xy (v : Vec2n) : Nat × Nat :=
 #guard (4, 5) == { x:=4, y:=5 : Vec2n }.to_prod_xy
 
 
+
 /-- For debug only! -/
-def Vec2n.toString (v : Vec2n) : String :=
+def Vec2n.to_string (v : Vec2n) : String :=
     s!"[{v.x} {v.y}]"
 
 
+
 /-- Add `n` to both `x` & `y`.
-*  `{ x:=4, y:=5 : Vec2n }.add_to_xy 10 = { x:=14, y:=15 }`
-*  `Vec2n.zero.add_to_xy 42 ={ x:=42, y:=42 }`
+* `{ x:=4, y:=5 : Vec2n }.add_to_xy 10 = { x:=14, y:=15 }`
+* `Vec2n.zero.add_to_xy 42 ={ x:=42, y:=42 }`
 -/
 def Vec2n.add_to_xy (v : Vec2n) (n : Nat) : Vec2n :=
     { x := v.x + n, y := v.y + n }
 
 #guard { x:=42, y:=42 : Vec2n } == Vec2n.zero.add_to_xy 42
 #guard { x:=14, y:=15 : Vec2n } == { x:=4, y:=5 : Vec2n }.add_to_xy 10
+
+
+
+/-- L1 distance from `self` to `other`.
+* `{ x:=3, y:=4 : Vec2n }.l1_distance_to { x:=7, y:=8 : Vec2n } = 8`
+-/
+def Vec2n.l1_distance_to (self other : Vec2n) : Nat :=
+    self.x.distance_to other.x + self.y.distance_to other.y
+
+#guard 8 == { x:=3, y:=4 : Vec2n }.l1_distance_to { x:=7, y:=8 : Vec2n}
 
