@@ -100,7 +100,6 @@ partial def dfs_calc_score
                 (false, sh.insert r score)
         if is_worse then (none, sh) else
         let (score_f, sh) := dfs_calc_score m r.forward (score+1)  sh
-        -- TODO(optimization): if `# v #` or `# ^ #` or same vertical then dont check `.left` and `.right`
         let (score_l, sh) := dfs_calc_score m r.left  (score+1000) sh
         let (score_r, sh) := dfs_calc_score m r.right (score+1000) sh
         ([score_f, score_l, score_r].minimum?.flatten, sh)
@@ -136,28 +135,24 @@ def l1_distance_to_end (m : Map) (p : Vec2n) : Nat :=
 def Trace := Lean.HashSet Vec2n
 
 
-/-- Returns (score, trace, best_score). -/
 partial def dfs_tiles_on_best_paths
     (m : Map)
     (r : Reindeer)
     (score : Nat)
     (sh : StatesHistory)
     (trace : Trace)
-    (best_score : Option Nat)
-    : Option (Nat × Trace × Nat) × StatesHistory :=
-    /- dbg_trace "\nr.x = {r.p.x}   r.y = {r.p.y}   dir = {r.dir.to_char}   m here = {m.get2d_v! r.p}" -/
+    : Option (Nat × Trace) × StatesHistory :=
     /- dbg_trace m_with_reindeer_to_string m r -/
+    /- dbg_trace "score = {score}   trace.size = {trace.size}   states_history.size = {sh.size}   l1_dist_to_end = {l1_distance_to_end m r.p}   r.p = {r.p.to_string}" -/
+    if score > 143580 then
+        (none, sh)
+    else if m.get2d_v! r.p == '#' then
+        (none, sh)
+    else
     let trace := trace.insert r.p
-    dbg_trace "score = {score}   best_score = {best_score}   trace.size = {trace.size}   states_history.size = {sh.size}   l1_dist_to_end = {l1_distance_to_end m r.p}   r.p = {r.p.to_string}"
-    /- dbg_trace m.as_map_to_string -/
-    if m.get2d_v! r.p == '#' then
-        (none, sh)
-    else if best_score.is_some_and (fun best_score => score > best_score) then
-        /- dbg_trace "score > best_score" -/
-        (none, sh)
-    else if m.get2d_v! r.p == 'E' then
-        dbg_trace "END HIT!!!"
-        (some (score, trace, score), sh)
+    if m.get2d_v! r.p == 'E' then
+        /- dbg_trace "END HIT!!!" -/
+        (some (score, trace), sh)
     else
         let (is_worse, sh) :=
             if let some score_recorded := sh.find? r then
@@ -168,12 +163,10 @@ partial def dfs_tiles_on_best_paths
             else
                 (false, sh.insert r score)
         if is_worse then (none, sh) else
-        let (score_trace_bs_f, sh) := dfs_tiles_on_best_paths m r.forward (score+1)  sh trace best_score
-        -- TODO(optimization): if `# v #` or `# ^ #` or same vertical then dont check `.left` and `.right`
-        let (score_trace_bs_l, sh) := dfs_tiles_on_best_paths m r.left  (score+1000) sh trace $ score_trace_bs_f.map (fun s_t_bs => s_t_bs.2.2)
-        let (score_trace_bs_r, sh) := dfs_tiles_on_best_paths m r.right (score+1000) sh trace $ score_trace_bs_f.map (fun s_t_bs => s_t_bs.2.2)
-        let score_traces := [score_trace_bs_f, score_trace_bs_l, score_trace_bs_r]
-            |>.map $ Option.map (fun s_t_bs => (s_t_bs.1, s_t_bs.2.1))
+        let (score_trace_f, sh) := dfs_tiles_on_best_paths m r.forward (score+1)  sh trace
+        let (score_trace_l, sh) := dfs_tiles_on_best_paths m r.left  (score+1000) sh trace
+        let (score_trace_r, sh) := dfs_tiles_on_best_paths m r.right (score+1000) sh trace
+        let score_traces := [score_trace_f, score_trace_l, score_trace_r]
         let min_score := score_traces
             |>.map (fun mst => mst.map Prod.fst)
             |>.minimum?.flatten
@@ -182,7 +175,7 @@ partial def dfs_tiles_on_best_paths
             |>.filter (fun score_trace => some score_trace.1 == min_score)
             |>.map Prod.snd
             |>.join_hashsets
-        (min_score.map (fun min_score => (min_score, traces, (best_score.min $ some min_score).getD min_score)), sh)
+        (min_score.map (fun min_score => (min_score, traces)), sh)
 
 
 def dfs_count_optimal_tiles (m : Map) (r : Reindeer) : Option Nat :=
@@ -192,11 +185,9 @@ def dfs_count_optimal_tiles (m : Map) (r : Reindeer) : Option Nat :=
         0
         (default : StatesHistory)
         Lean.HashSet.empty
-        (some 150000) -- 143580
     let optimal_tiles := result
         |>.1
         |>.map Prod.snd
-        |>.map Prod.fst
     /- dbg_trace optimal_tiles.map (fun ot => ot.toList) -/
     optimal_tiles.map Lean.HashSet.size
 
@@ -206,9 +197,9 @@ def solve_part_two (input : String) : Option Nat :=
     dfs_count_optimal_tiles m r
 
 
-/- #eval solve_part_two example_1 -/
-/- #guard example_1_answer_part_two == solve_part_two example_1 -/
+#eval solve_part_two example_1
+#guard example_1_answer_part_two == solve_part_two example_1
 
-/- #eval solve_part_two example_2 -/
-/- #guard example_2_answer_part_two == solve_part_two example_2 -/
+#eval solve_part_two example_2
+#guard example_2_answer_part_two == solve_part_two example_2
 
