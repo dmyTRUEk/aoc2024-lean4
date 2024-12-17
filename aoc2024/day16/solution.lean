@@ -1,6 +1,6 @@
 import Lean.Data.HashMap
 
-import aoc2024.mylib
+import aoc2024.mylib.mylib
 
 import aoc2024.day16.examples
 /- import aoc2024.day16.input -/
@@ -53,11 +53,11 @@ def Reindeer.right (r : Reindeer) : Reindeer :=
     { r with dir := r.dir.right }
 
 
-def Map := List $ List Char
+def Map := Array $ Array Char
 
 
 def parse_input (input : String) : (Map × Reindeer) :=
-    let m := input.to_list2d
+    let m := input.to_array2d
     let rp := Vec2n.from_prod_yx $ m.index2d_of_first! $ eq 'S'
     let rd := Dir.East
     let r := { p:=rp, dir:=rd }
@@ -76,10 +76,14 @@ def StatesHistory := Lean.HashMap Reindeer Nat
 instance : Inhabited StatesHistory where
     default := Lean.HashMap.empty
 
-partial def dfs_calc_score (m : Map) (r : Reindeer) (score : Nat) (sh : StatesHistory) : Option Nat × StatesHistory :=
+partial def dfs_calc_score
+    (m : Map)
+    (r : Reindeer)
+    (score : Nat)
+    (sh : StatesHistory)
+    : Option Nat × StatesHistory :=
     /- dbg_trace "\nr.x = {r.p.x}   r.y = {r.p.y}   dir = {r.dir.to_char}   m here = {m.get2d_v! r.p}" -/
     /- dbg_trace m_with_reindeer_to_string m r -/
-    /- if score > 10^5 then (none, sh) else -- FIXME -/
     if m.get2d_v! r.p == '#' then
         (none, sh)
     else if m.get2d_v! r.p == 'E' then

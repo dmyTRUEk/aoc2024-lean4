@@ -1,4 +1,4 @@
-import aoc2024.mylib
+import aoc2024.mylib.mylib
 
 import aoc2024.day13.example
 import aoc2024.day13.input

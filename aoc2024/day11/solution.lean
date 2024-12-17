@@ -1,6 +1,6 @@
 import Lean.Data.HashMap
 
-import aoc2024.mylib
+import aoc2024.mylib.mylib
 
 import aoc2024.day11.example
 import aoc2024.day11.input
