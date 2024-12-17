@@ -1,4 +1,5 @@
 import Lean.Data.HashMap
+import Lean.Data.HashSet
 
 import aoc2024.mylib.mylib
 
@@ -116,11 +117,71 @@ def solve_part_one (input : String) : Option Nat :=
 
 
 
-/- def solve_part_two (input : String) : Nat := -/
-/-     input -/
-/-         |> parse_input -/
-/-         |> sorry -/
+def HashSet.from_list [BEq T] [Hashable T] (as : Array T) : Lean.HashSet T :=
+    as.foldl
+        (fun acc el => acc.insert el)
+        Lean.HashSet.empty
 
-/- #eval solve_part_two example_2 -/
-/- #guard example_1_answer_part_two == solve_part_two example_1 -/
+
+def List.join_hashsets [BEq T] [Hashable T] (as : List $ Lean.HashSet T) : Lean.HashSet T :=
+    as.foldl
+        (fun acc el => acc.insertMany el)
+        Lean.HashSet.empty
+
+def Trace := Lean.HashSet Vec2n
+
+partial def dfs_tiles_on_best_paths
+    (m : Map)
+    (r : Reindeer)
+    (score : Nat)
+    (sh : StatesHistory)
+    (trace : Trace)
+    : Option (Nat × Trace) × StatesHistory :=
+    /- dbg_trace "\nr.x = {r.p.x}   r.y = {r.p.y}   dir = {r.dir.to_char}   m here = {m.get2d_v! r.p}" -/
+    /- dbg_trace m_with_reindeer_to_string m r -/
+    let trace := trace.insert r.p
+    if m.get2d_v! r.p == '#' then
+        (none, sh)
+    else if m.get2d_v! r.p == 'E' then
+        (some (score, trace), sh)
+    else
+        let (is_worse, sh) :=
+            if let some score_recorded := sh.find? r then
+                if score <= score_recorded then
+                    (false, sh.insert r score)
+                else
+                    (true, sh)
+            else
+                (false, sh.insert r score)
+        if is_worse then (none, sh) else
+        let (score_trace_f, sh) := dfs_tiles_on_best_paths m r.forward (score+1)  sh trace
+        -- TODO(optimization): if `# v #` or `# ^ #` or same vertical then dont check `.left` and `.right`
+        let (score_trace_l, sh) := dfs_tiles_on_best_paths m r.left  (score+1000) sh trace
+        let (score_trace_r, sh) := dfs_tiles_on_best_paths m r.right (score+1000) sh trace
+        let score_traces := [score_trace_f, score_trace_l, score_trace_r]
+        let min_score := score_traces
+            |>.map (fun mst => mst.map Prod.fst)
+            |>.minimum?.flatten
+        let traces := score_traces
+            |>.reduceOption
+            |>.filter (fun score_trace => some score_trace.1 == min_score)
+            |>.map Prod.snd
+            |>.join_hashsets
+        (min_score.map (fun min_score => (min_score, traces)), sh)
+
+
+def solve_part_two (input : String) : Option Nat :=
+    let (m, r) := parse_input input
+    let optimal_tiles := dfs_tiles_on_best_paths m r 0 (default : StatesHistory) Lean.HashSet.empty
+        |>.1
+        |>.map Prod.snd
+    /- dbg_trace optimal_tiles.map (fun ot => ot.toList) -/
+    optimal_tiles.map Lean.HashSet.size
+
+
+#eval solve_part_two example_1
+#guard example_1_answer_part_two == solve_part_two example_1
+
+#eval solve_part_two example_2
+#guard example_2_answer_part_two == solve_part_two example_2
 
