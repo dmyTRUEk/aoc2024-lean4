@@ -23,3 +23,7 @@ def String.join_ (sep : String) (ss : List String) : String :=
 #guard "a-b-c" == "-".join_ ["a", "b", "c"]
 
 
+
+-- TODO(feat)
+/- def String.substring -/
+
