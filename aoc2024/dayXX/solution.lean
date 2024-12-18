@@ -25,6 +25,6 @@ def solve_part_two (input : String) : Nat :=
         |> parse_input
         |> sorry
 
-#eval solve_part_two example_2
+#eval solve_part_two example_1
 #guard example_1_answer_part_two == solve_part_two example_1
 
