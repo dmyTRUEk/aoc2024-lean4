@@ -10,21 +10,21 @@ def parse_input (input : String) : sorry :=
 
 
 
-def solve_part_one (input : String) : Nat :=
+def solve_part_one (input : String) : OutputTypePartOne :=
     input
         |> parse_input
         |> sorry
 
 #eval solve_part_one example_1
-#guard example_1_answer == solve_part_one example_1
+#guard example_1_answer_part_one == solve_part_one example_1
 
 
 
-def solve_part_two (input : String) : Nat :=
-    input
-        |> parse_input
-        |> sorry
+/- def solve_part_two (input : String) : OutputTypePartTwo := -/
+/-     input -/
+/-         |> parse_input -/
+/-         |> sorry -/
 
-#eval solve_part_two example_1
-#guard example_1_answer_part_two == solve_part_two example_1
+/- #eval solve_part_two example_1 -/
+/- #guard example_1_answer_part_two == solve_part_two example_1 -/
 
