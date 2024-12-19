@@ -1,2 +1,2 @@
 abbrev OutputTypePartOne := String
-/- abbrev OutputTypePartTwo := sorry -/
+abbrev OutputTypePartTwo := Nat
