@@ -104,11 +104,33 @@ def solve_part_one (input : String) : OutputTypePartOne :=
 
 
 
-/- def solve_part_two (input : String) : OutputTypePartTwo := -/
-/-     input -/
-/-         |> parse_input -/
-/-         |> sorry -/
+partial def Design.number_of_ways (towels : Towels) (design : Design) (depth : Nat := 0) : Nat :=
+    /- dbg_trace "towels = {towels.to_string!}" -/
+    /- dbg_trace "design = {design.to_string!}" -/
+    /- dbg_trace "depth = {depth}" -/
+    /- dbg_trace "design.size = {design.size}" -/
+    if design.isEmpty then 1 else
+    towels
+        |>.map (fun towel =>
+            if !towel.isPrefixOf design then 0 else
+                if !design.is_possible towels then 0 else
+                    design.drop towel.size |> (Design.number_of_ways towels . (depth+1))
+        )
+        |>.sum
 
-/- #eval solve_part_two example_1 -/
-/- #guard example_1_answer_part_two == solve_part_two example_1 -/
+
+def solve_part_two (input : String) : OutputTypePartTwo :=
+    let (towels, designs) := parse_input input
+    designs
+        |>.enumerate
+        |>.map (fun i_design =>
+            let (i, design) := i_design
+            dbg_trace "i = {i}"
+            if !design.is_possible towels then 0 else
+                design.number_of_ways towels
+        )
+        |>.sum
+
+#eval solve_part_two example_1
+#guard example_1_answer_part_two == solve_part_two example_1
 

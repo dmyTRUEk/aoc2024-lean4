@@ -13,4 +13,4 @@ brgr
 bbrgwb"
 
 def example_1_answer_part_one : OutputTypePartOne := 6
-/- def example_1_answer_part_two : OutputTypePartTwo := sorry -/
+def example_1_answer_part_two : OutputTypePartTwo := 16
