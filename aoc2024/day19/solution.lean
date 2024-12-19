@@ -1,3 +1,5 @@
+import Lean.Data.HashMap
+
 import aoc2024.mylib.mylib
 
 import aoc2024.day19.examples
@@ -5,10 +7,13 @@ import aoc2024.day19.examples
 
 
 def Color := UInt8
-@[inline] def Color.get (color : Color) : UInt8 := color
+@[inline] def Color.get_ (color : Color) : UInt8 := color
 
 instance : BEq Color where
-    beq := (fun a b => a.get == b.get)
+    beq := (fun a b => a.get_ == b.get_)
+
+instance : Hashable Color where
+    hash := fun color => Hashable.hash color.get_
 
 def Color.from_char! : Char -> Color
     | 'w' => (1 : UInt8)
@@ -19,7 +24,7 @@ def Color.from_char! : Char -> Color
     |  _  => (0 : UInt8)
 
 def Color.to_char! (color : Color) : Char :=
-    match color.get with
+    match color.get_ with
     | 1 => 'w'
     | 2 => 'u'
     | 3 => 'b'
@@ -28,33 +33,41 @@ def Color.to_char! (color : Color) : Char :=
     | _ => '?'
 
 
-def Towel := Array Color
-def Towels := Array Towel
+def Towel := List Color
+def Towels := List Towel
 
 def Towel.from_string! (s : String) : Towel :=
-    s.toList.toArray.map Color.from_char!
+    s.toList.map Color.from_char!
 
 def Towels.from_string! (s : String) : Towels :=
-    s.splitOn ", " |>.map Towel.from_string! |>.toArray
+    s.splitOn ", " |>.map Towel.from_string!
 
 def Towel.to_string! (towel : Towel) : String :=
-    towel.map Color.to_char! |>.join_chars' ""
+    towel.map Color.to_char! |>.join_chars ""
 
 def Towels.to_string! (towels : Towels) : String :=
     towels.map Towel.to_string! |>.join_ ", "
 
 
-def Design := Array Color
-def Designs := Array Design
+def Design := List Color
+def Designs := List Design
+
+def Design.get_ (design : Design) : List Color := design
+
+instance : BEq Design where
+    beq := (fun a b => a.get_ == b.get_)
+
+instance : Hashable Design where
+    hash := fun design => Hashable.hash design.get_
 
 def Design.from_string! (s : String) : Design :=
-    s.toList.toArray.map Color.from_char!
+    s.toList.map Color.from_char!
 
 def Designs.from_string! (s : String) : Designs :=
-    s.split_lines' |>.map Design.from_string!
+    s.split_lines |>.map Design.from_string!
 
 def Design.to_string! (design : Design) : String :=
-    design.map Color.to_char! |>.join_chars' ""
+    design.map Color.to_char! |>.join_chars ""
 
 
 def parse_input (input : String) : (Towels × Designs) :=
@@ -63,8 +76,6 @@ def parse_input (input : String) : (Towels × Designs) :=
     let designs := Designs.from_string! towels_designs[1]!
     (towels, designs)
 
-
-/- #eval (#[3] : Array Nat).isEmpty -/
 
 
 partial def Design.is_possible (towels : Towels) (design : Design) (depth : Nat := 0) : Bool :=
@@ -76,7 +87,7 @@ partial def Design.is_possible (towels : Towels) (design : Design) (depth : Nat 
     let tmp := towels
         |>.any (fun towel =>
             if !towel.isPrefixOf design then false else
-                design.drop towel.size |> (Design.is_possible towels . (depth+1))
+                design.drop towel.length |> (Design.is_possible towels . (depth+1))
         )
     /- dbg_trace "tmp = {tmp.map Towel.to_string!}" -/
     tmp
@@ -97,39 +108,73 @@ def solve_part_one (input : String) : OutputTypePartOne :=
             /- dbg_trace "i = {i}" -/
             design.is_possible towels
         )
-        |>.size
+        |>.length
 
 #eval solve_part_one example_1
 #guard example_1_answer_part_one == solve_part_one example_1
 
 
 
-partial def Design.number_of_ways (towels : Towels) (design : Design) (depth : Nat := 0) : Nat :=
+abbrev Cache := Lean.HashMap Design Towels
+
+/- partial def Design.number_of_ways_raw (towels : Towels) (design : Design) : Nat := -/
+/-     if design.isEmpty then 1 else -/
+/-     towels -/
+/-         |>.map (fun towel => -/
+/-             if !towel.isPrefixOf design then 0 else -/
+/-                 if !design.is_possible towels then 0 else -/
+/-                     design.drop towel.length |> Design.number_of_ways_raw towels -/
+/-         ) -/
+/-         |>.sum -/
+
+partial def Design.number_of_ways
+    (all_towels : Towels)
+    (design : Design)
+    /- (depth : Nat := 0) -/
+    (cache : Cache)
+    : Nat × Cache :=
     /- dbg_trace "towels = {towels.to_string!}" -/
     /- dbg_trace "design = {design.to_string!}" -/
     /- dbg_trace "depth = {depth}" -/
-    /- dbg_trace "design.size = {design.size}" -/
-    if design.isEmpty then 1 else
-    towels
-        |>.map (fun towel =>
-            if !towel.isPrefixOf design then 0 else
-                if !design.is_possible towels then 0 else
-                    design.drop towel.size |> (Design.number_of_ways towels . (depth+1))
+    /- dbg_trace "design.size = {design.length}   cache.size = {cache.size}" -/
+    if design.isEmpty then (1, cache) else
+    let (towels, cache) :=
+        if let some towels := cache.find? $ design.take 8 then
+            /- dbg_trace "CACHE HIT" -/
+            (towels, cache)
+        else
+            /- dbg_trace "CACHE MISS" -/
+            let towels : Towels := all_towels.filter $ fun t => t.isPrefixOf design
+            let cache := cache.insert (design.take 8) towels
+            (towels, cache)
+    let (n, cache) := towels.foldl (fun acc el =>
+            let cache := acc.2
+            let t := el
+            let (n, cache) := design.drop t.length |> (Design.number_of_ways all_towels . cache)
+            (acc.1 + n, cache)
         )
-        |>.sum
+        (0, cache)
+    let cache : Cache := cache
+    (n, cache)
+    /- (0, cache) -/
+
 
 
 def solve_part_two (input : String) : OutputTypePartTwo :=
     let (towels, designs) := parse_input input
-    designs
+    let towels := towels.sort_by_key $ fun t => t.length
+    let tmp := designs
         |>.enumerate
-        |>.map (fun i_design =>
-            let (i, design) := i_design
+        |>.foldl (fun acc el =>
+            let (n_old, cache) := acc
+            let (i, design) := el
             dbg_trace "i = {i}"
-            if !design.is_possible towels then 0 else
-                design.number_of_ways towels
+            let (n, cache) := if !design.is_possible towels then (0, cache) else
+                design.number_of_ways towels cache
+            (n_old + n, cache)
         )
-        |>.sum
+        (0, Lean.HashMap.empty)
+    tmp.1
 
 #eval solve_part_two example_1
 #guard example_1_answer_part_two == solve_part_two example_1

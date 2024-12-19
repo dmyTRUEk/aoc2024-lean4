@@ -4,16 +4,39 @@ import aoc2024.mylib.misc
 
 
 
+/-- Quick sort by comparison function `f`. Not stable.
+* `["c", "aaa", "", "a", "bb"].sort_by (fun s1 s2 => s1.length > s2.length) = ["", "c", "a", "bb", "aaa"]`
+-/
+partial def List.sort_by (list : List T) (f : T -> T -> Bool) : List T :=
+    match list with
+    | [] => []
+    | head :: tail =>
+        let (l, r) := tail.partition $ f head
+        l.sort_by f ++ [head] ++ r.sort_by f
 
-/-- Quick sort.
+#guard ["", "a", "bb", "ccc"] == ["ccc", "", "a", "bb"].sort_by (fun s1 s2 => s1.length > s2.length)
+
+
+/-- Quick sort by key function `f`. Not stable.
+* `["c", "aaa", "", "a", "bb"].sort_by $ fun s1 s2 => s1.length > s2.length = ["", "c", "a", "bb", "aaa"]`
+-/
+partial def List.sort_by_key [Ord K] (list : List T) (f : T -> K) : List T :=
+    match list with
+    | [] => []
+    | head :: tail =>
+        let head_key := f head
+        let (l, r) := tail.partition $ fun el => (compare head_key (f el)).isGE
+        l.sort_by_key f ++ [head] ++ r.sort_by_key f
+
+#guard ["", "a", "bb", "ccc"] == ["ccc", "", "a", "bb"].sort_by_key (fun s => s.length)
+
+
+/-- Quick sort. Not stable.
 * `sort [2,3,1] = [1,2,3]`
 * `sort [8,3,1,8,0,3,2,1,2,7,9] = [0,1,1,2,2,3,3,7,8,8,9]`
 -/
-partial def List.sort [Ord T] : List T -> List T
-    | [] => []
-    | head :: tail =>
-        let (l, r) := tail.partition (fun x => (compare x head).isLE)
-        l.sort ++ [head] ++ r.sort
+partial def List.sort [Ord T] (list : List T) : List T :=
+    list.sort_by fun a b => (compare a b).isGE
 
 #guard [1,2,3] == [2,3,1].sort
 #guard [0,1,1,2,2,3,3,7,8,8,9] == [8,3,1,8,0,3,2,1,2,7,9].sort
