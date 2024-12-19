@@ -76,12 +76,12 @@ def String.split_chunks' (s : String) : Array String :=
 
 
 
--- /-- Enumerate array elements.
--- * `#['a','b','c'].enumerate = #[(0,'a'), (1,'b'), (2,'c')]`
--- -/
--- def Array.enumerate : Array T -> Array (Nat × T) := Array.enum
--- 
--- #guard #[(0,'a'), (1,'b'), (2,'c')] == #['a','b','c'].enumerate
+/-- Enumerate array elements.
+* `#['a','b','c'].enumerate = #[(0,'a'), (1,'b'), (2,'c')]`
+-/
+def Array.enumerate : Array T -> Array (Nat × T) := (.|>.toList.enumerate.toArray)
+
+#guard #[(0,'a'), (1,'b'), (2,'c')] == #['a','b','c'].enumerate
 
 
 
