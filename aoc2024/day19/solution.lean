@@ -115,7 +115,6 @@ def solve_part_one (input : String) : OutputTypePartOne :=
 
 
 
-abbrev Cache := Lean.HashMap Design Towels
 
 /- partial def Design.number_of_ways_raw (towels : Towels) (design : Design) : Nat := -/
 /-     if design.isEmpty then 1 else -/
@@ -127,6 +126,39 @@ abbrev Cache := Lean.HashMap Design Towels
 /-         ) -/
 /-         |>.sum -/
 
+/- abbrev Cache := Lean.HashMap Design Towels -/
+/- partial def Design.number_of_ways -/
+/-     (all_towels : Towels) -/
+/-     (design : Design) -/
+/-     /1- (depth : Nat := 0) -1/ -/
+/-     (cache : Cache) -/
+/-     : Nat × Cache := -/
+/-     /1- dbg_trace "towels = {towels.to_string!}" -1/ -/
+/-     /1- dbg_trace "design = {design.to_string!}" -1/ -/
+/-     /1- dbg_trace "depth = {depth}" -1/ -/
+/-     /1- dbg_trace "design.size = {design.length}   cache.size = {cache.size}" -1/ -/
+/-     if design.isEmpty then (1, cache) else -/
+/-     let (towels, cache) := -/
+/-         if let some towels := cache.find? $ design.take 8 then -/
+/-             /1- dbg_trace "CACHE HIT" -1/ -/
+/-             (towels, cache) -/
+/-         else -/
+/-             /1- dbg_trace "CACHE MISS" -1/ -/
+/-             let towels : Towels := all_towels.filter $ fun t => t.isPrefixOf design -/
+/-             let cache := cache.insert (design.take 8) towels -/
+/-             (towels, cache) -/
+/-     let (n, cache) := towels.foldl (fun acc el => -/
+/-             let cache := acc.2 -/
+/-             let t := el -/
+/-             let (n, cache) := design.drop t.length |> (Design.number_of_ways all_towels . cache) -/
+/-             (acc.1 + n, cache) -/
+/-         ) -/
+/-         (0, cache) -/
+/-     let cache : Cache := cache -/
+/-     (n, cache) -/
+/-     /1- (0, cache) -1/ -/
+
+abbrev Cache := Lean.HashMap Design Nat
 partial def Design.number_of_ways
     (all_towels : Towels)
     (design : Design)
@@ -138,43 +170,51 @@ partial def Design.number_of_ways
     /- dbg_trace "depth = {depth}" -/
     /- dbg_trace "design.size = {design.length}   cache.size = {cache.size}" -/
     if design.isEmpty then (1, cache) else
-    let (towels, cache) :=
-        if let some towels := cache.find? $ design.take 8 then
-            /- dbg_trace "CACHE HIT" -/
-            (towels, cache)
-        else
-            /- dbg_trace "CACHE MISS" -/
-            let towels : Towels := all_towels.filter $ fun t => t.isPrefixOf design
-            let cache := cache.insert (design.take 8) towels
-            (towels, cache)
-    let (n, cache) := towels.foldl (fun acc el =>
-            let cache := acc.2
-            let t := el
-            let (n, cache) := design.drop t.length |> (Design.number_of_ways all_towels . cache)
-            (acc.1 + n, cache)
-        )
-        (0, cache)
-    let cache : Cache := cache
-    (n, cache)
-    /- (0, cache) -/
+    if let some res := cache.find? $ design then
+        /- dbg_trace "CACHE HIT" -/
+        (res, cache)
+    else
+        /- dbg_trace "CACHE MISS" -/
+        let (res, cache) := all_towels
+            |>.filter (fun t => t.isPrefixOf design)
+            |>.foldl (fun acc el =>
+                let (n_old, cache) := acc
+                let t := el
+                let d : Design := design.drop t.length
+                let (n, cache) := d.number_of_ways all_towels cache
+                (n_old + n, cache)
+                /- (0, cache) -/
+            )
+            (0, cache)
+        let cache := cache.insert design res
+        (res, cache)
 
 
 
 def solve_part_two (input : String) : OutputTypePartTwo :=
     let (towels, designs) := parse_input input
     let towels := towels.sort_by_key $ fun t => t.length
-    let tmp := designs
+    /- let tmp := designs -/
+    /-     |>.enumerate -/
+    /-     |>.foldl (fun acc el => -/
+    /-         let (n_old, cache) := acc -/
+    /-         let (i, design) := el -/
+    /-         dbg_trace "i = {i}" -/
+    /-         let (n, cache) := if !design.is_possible towels then (0, cache) else -/
+    /-             design.number_of_ways towels cache -/
+    /-         (n_old + n, cache) -/
+    /-     ) -/
+    /-     (0, Lean.HashMap.empty) -/
+    /- tmp.1 -/
+    designs
         |>.enumerate
-        |>.foldl (fun acc el =>
-            let (n_old, cache) := acc
-            let (i, design) := el
+        |>.map (fun i_design =>
+            let (i, design) := i_design
             dbg_trace "i = {i}"
-            let (n, cache) := if !design.is_possible towels then (0, cache) else
-                design.number_of_ways towels cache
-            (n_old + n, cache)
+            Design.number_of_ways towels design Lean.HashMap.empty
         )
-        (0, Lean.HashMap.empty)
-    tmp.1
+        |>.map Prod.fst
+        |>.sum
 
 #eval solve_part_two example_1
 #guard example_1_answer_part_two == solve_part_two example_1
