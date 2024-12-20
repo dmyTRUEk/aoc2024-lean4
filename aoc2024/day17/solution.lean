@@ -1,3 +1,5 @@
+import Lean.Data.HashMap
+
 import aoc2024.mylib.mylib
 
 import aoc2024.day17.examples
@@ -148,7 +150,7 @@ partial def exe' (pr : Program) (rs : Registers) (ip : Nat) (output : Array Nat)
         output.map (fun n => s!"{n}") |>.join_ ","
 
 
-partial def exe_real_input (a : Nat) : Array Nat :=
+partial def exe_real_input (a : Nat) : (Array Nat) :=
     let b := a % 8
     let b := b.xor 1
     let c := a >>> b
@@ -162,25 +164,70 @@ partial def exe_real_input (a : Nat) : Array Nat :=
         #[b_mod_8].append $ exe_real_input a
 
 
-partial def find_min_reg_a (pr : Program) (a : Nat) : Nat :=
-    dbg_trace a
-    let res := exe_real_input a
-    dbg_trace res
+abbrev Cache := Lean.HashMap Nat $ Array Nat
+
+partial def exe_real_input' (a_org : Nat) (cache : Cache) : (Array Nat × Cache) :=
+    /- dbg_trace "exe_real_input' -> a = {a_org}" -/
+    if let some res := cache.find? a_org then
+        /- dbg_trace "CACHE HIT" -/
+        (res, cache)
+    else
+    /- dbg_trace "CACHE MISS" -/
+    let a := a_org
+    let b := a % 8
+    let b := b.xor 1
+    let c := a >>> b
+    let b := b.xor c
+    let a := a >>> 3
+    let b := b.xor 6
+    let b_mod_8 := b % 8
+    let (res, cache) := if a == 0 then
+        (#[b_mod_8], cache)
+    else
+        let (res, cache) := exe_real_input' a cache
+        let res := #[b_mod_8].append res
+        (res, cache)
+    let cache : Cache := cache.insert a_org res
+    /- dbg_trace "exe_real_input' -> res = {res}" -/
+    (res, cache)
+
+
+partial def find_min_reg_a (pr : Program) (a : Nat) (cache : Cache) : Nat :=
+    /- dbg_trace "" -/
+    dbg_trace "find_min_reg_a -> a = {a}"
+    let (res, cache) := exe_real_input' a cache
+    dbg_trace "pr  = {pr}"
+    /- dbg_trace "cache = {cache.toList}" -/
+    /- dbg_trace "res_raw = {exe_real_input a}" -/
+    dbg_trace "res = {res}"
+    /- if a > 10 then 0 else -/
     if pr == res then
         a
     else
-        find_min_reg_a pr $ a+1
+        find_min_reg_a pr (a+1) cache
 
 def solve_part_two (input : String) : OutputTypePartTwo :=
     let (_rs, pr) := parse_input input
-    find_min_reg_a pr 10000000000005
+    find_min_reg_a pr 7190134 Lean.HashMap.empty
 
 /- #eval solve_part_two example_1_part_two -/
 /- #guard example_1_answer_part_two == solve_part_two example_1_part_two -/
 
-#eval #[2,4,1,1,7,5,4,0,0,3,1,6,5,5,3,0].size
-#eval exe #[2,4,1,1,7,5,4,0,0,3,1,6,5,5,3,0] { a:=35184500000000, b:=0, c:=0 } 0 #[]
-#eval exe_real_input 10000000000000 |>.size
-#eval exe_real_input 10000000000005
-#eval exe_real_input  5000000000000
+/- #eval #[2,4,1,1,7,5,4,0,0,3,1,6,5,5,3,0].size -/
+/- #eval exe #[2,4,1,1,7,5,4,0,0,3,1,6,5,5,3,0] { a:=35184500000000, b:=0, c:=0 } 0 #[] -/
+/- #eval exe_real_input 10000000000000 |>.size -/
+/- #eval exe_real_input 10000000000005 -/
+/- #eval exe_real_input  5000000000000 -/
+
+#eval exe_real_input 379009
+#eval exe_real_input' 379009 Lean.HashMap.empty |>.1
+#eval exe #[2,4,1,1,7,5,4,0,0,3,1,6,5,5,3,0] { a:=18689, b:=0, c:=0 } 0 #[]
+
+#eval exe_real_input 37900914542
+#eval exe_real_input' 37900914542 Lean.HashMap.empty |>.1
+
+#eval exe_real_input 0o7026424555710000
+#eval exe_real_input 0o7026425236514272
+#eval  [2,4,1,1,7,5,4,0,0,3,1,6,5,5,3,0]
+#eval 0o7026425236514272
 
