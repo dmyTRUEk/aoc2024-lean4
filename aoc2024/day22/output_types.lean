@@ -1,2 +1,2 @@
 abbrev OutputTypePartOne := Nat
-/- abbrev OutputTypePartTwo := sorry -/
+abbrev OutputTypePartTwo := Nat

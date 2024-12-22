@@ -170,6 +170,35 @@ def Array.range_ (min max : Nat) : Array Nat :=
 
 
 
+/-- Numbers from `start` to `start+n` exclusive, in increasing order.
+* `Array.int_range_from (-1) 4 = #[-1,0,1,2]`
+* `Array.int_range_from 3 4 = #[3,4,5,6]`
+-/
+def Array.int_range_from (start : Int) (count : Nat) : Array Int :=
+    /- Array.replicate count Unit.unit |>.enumFrom start |>.map Prod.fst -/
+    Array.range count |>.map Nat.to_int |>.map (. + start)
+
+#guard (Array.range 42).map Nat.to_int == Array.int_range_from 0 42
+#guard #[-1,0,1,2] == Array.int_range_from (-1) 4
+#guard #[3,4,5,6] == Array.int_range_from 3 4
+#guard #[] == Array.int_range_from 3 0
+
+
+
+/-- Numbers from `min` to `max` inclusive, in increasing order. UB if `min > max`
+* `Array.int_range_from (-1) 1 = #[-1,0,1]`
+* `Array.int_range_from 3 5 = #[3,4,5]`
+-/
+def Array.int_range_ (min max : Int) : Array Int :=
+    Array.range (max + 1 - min |>.toNat) |>.map Nat.to_int |>.map (. + min)
+
+#guard #[-1,0,1] == Array.int_range_ (-1) 1
+#guard #[3,4,5] == Array.int_range_ 3 5
+#guard #[3] == Array.int_range_ 3 3
+#guard #[] == Array.int_range_ 3 2
+
+
+
 /-- Subarray of a `as` starting from index `start` with (max) length `len`.
 * `#['a','b','c','d','e','f'].subarray 1 3 = #['b','c','d']`
 -/
@@ -270,4 +299,36 @@ def Array.juxt {A B : Type} (fs: Array $ A -> B) (a : A) : Array B :=
     fs.map (fun f => f a)
 
 #guard #[20, 15, 5] == #[(. * 2), (. + 5), (. / 2)].juxt 10
+
+
+
+/-- Tensor product of two arrays.
+* `#[1, 2].tensor_product #['a', 'b'] = #[(1,'a'), (1,'b'), (2,'a'), (2,'b')]`
+-/
+def Array.tensor_product (as : Array A) (bs : Array B) : Array (A × B) :=
+    as.map (fun a =>
+        bs.map (fun b =>
+            (a, b)
+        )
+    )
+    |>.flatten
+
+#guard #[(1,'a'), (1,'b'), (2,'a'), (2,'b')] == #[1, 2].tensor_product #['a', 'b']
+
+
+
+/-- Maximum value of the array `as`.
+* `#[4, 1, 9, 42, 7].maximum? = some 42`
+-/
+def Array.maximum? [Max A] (as : Array A) : Option A :=
+    as.toList.maximum?
+
+#guard some 42 == #[4, 1, 9, 42, 7].maximum?
+
+
+
+/- N-dimensional tensor product of `as` mapped by `map` and then reduced by `reduce`.
+-/
+/- def Array.nd_map_fold (n : Nat) (as : Array A) (map : Array A -> B) (reduce : B -> B -> B) : B := -/
+/-     sorry -/
 

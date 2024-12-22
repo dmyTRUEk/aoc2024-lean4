@@ -7,4 +7,14 @@ def example_1 : String := "\
 2024"
 
 def example_1_answer_part_one : OutputTypePartOne := 37327623
-/- def example_1_answer_part_two : OutputTypePartTwo := sorry -/
+
+
+
+-- part two:
+def example_2 : String := "\
+1
+2
+3
+2024"
+
+def example_2_answer_part_two : OutputTypePartTwo := 23

@@ -1,6 +1,7 @@
 --- list
 
 import aoc2024.mylib.misc
+import aoc2024.mylib.nat
 
 
 
@@ -148,7 +149,7 @@ def List.contains_index (index : Nat) (as : List T) : Bool :=
 
 
 
-/-- Numbers from `start` to `start+n` exclusive, in increasing order.
+/-- Natural numbers from `start` to `start+n` exclusive, in increasing order.
 * `range_from 0 4 = [0,1,2,3]`
 * `range_from 3 4 = [3,4,5,6]`
 -/
@@ -163,7 +164,7 @@ def List.range_from (start count : Nat) : List Nat :=
 
 
 
-/-- Numbers from `min` to `max` inclusive, in increasing order. UB if `min > max`
+/-- Natural numbers from `min` to `max` inclusive, in increasing order. UB if `min > max`
 * `range_from 0 2 = [0,1,2]`
 * `range_from 3 5 = [3,4,5]`
 -/
@@ -174,6 +175,34 @@ def List.range_ (min max : Nat) : List Nat :=
 #guard [3,4,5] == List.range_ 3 5
 #guard [3] == List.range_ 3 3
 #guard [] == List.range_ 3 2
+
+
+
+/-- Integer numbers from `start` to `start+n` exclusive, in increasing order.
+* `List.int_range_from (-1) 4 = [-1,0,1,2]`
+* `List.int_range_from 3 4 = [3,4,5,6]`
+-/
+def List.int_range_from (start : Int) (count : Nat) : List Int :=
+    List.range count |>.map Nat.to_int |>.map (. + start)
+
+#guard (List.range 42).map Nat.to_int == List.int_range_from 0 42
+#guard [-1,0,1,2] == List.int_range_from (-1) 4
+#guard [3,4,5,6] == List.int_range_from 3 4
+#guard [] == List.int_range_from 3 0
+
+
+
+/-- Integer numbers from `min` to `max` inclusive, in increasing order. UB if `min > max`
+* `List.int_range_from (-1) 1 = [-1,0,1]`
+* `List.int_range_from 3 5 = [3,4,5]`
+-/
+def List.int_range_ (min max : Int) : List Int :=
+    List.range (max + 1 - min |>.toNat) |>.map Nat.to_int |>.map (. + min)
+
+#guard [-1,0,1] == List.int_range_ (-1) 1
+#guard [3,4,5] == List.int_range_ 3 5
+#guard [3] == List.int_range_ 3 3
+#guard [] == List.int_range_ 3 2
 
 
 
@@ -261,4 +290,19 @@ def List.juxt {A B : Type} (fs: List $ A -> B) (a : A) : List B :=
     fs.map (fun f => f a)
 
 #guard [20, 15, 5] == [(. * 2), (. + 5), (. / 2)].juxt 10
+
+
+
+/-- Tensor product of two lists.
+* `[1, 2].tensor_product ['a', 'b'] = [(1,'a'), (1,'b'), (2,'a'), (2,'b')]`
+-/
+def List.tensor_product (as : List A) (bs : List B) : List (A × B) :=
+    as.map (fun a =>
+        bs.map (fun b =>
+            (a, b)
+        )
+    )
+    |>.flatten
+
+#guard [(1,'a'), (1,'b'), (2,'a'), (2,'b')] == [1, 2].tensor_product ['a', 'b']
 
