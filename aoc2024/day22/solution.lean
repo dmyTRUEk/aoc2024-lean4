@@ -53,7 +53,8 @@ def deltas (ss : Array Nat) : Array Int :=
             b - a
         )
 
-#eval deltas $ evolve_seq 10 123
+#eval evolve_seq 10 123 |>.map (. % 10)
+#eval deltas $ evolve_seq 10 123    
 #guard deltas (evolve_seq 10 123) == #[-3, 6, -1, -1, 0, 2, -2, 0, -2]
 
 
@@ -62,13 +63,13 @@ def bananas_with_ds4 (ss : Array Nat) (ds : Array Int) (ds_4 : Int × Int × Int
     let (ds1, ds2, ds3, ds4) := ds_4
     let ds_4 := #[ds1, ds2, ds3, ds4]
     let index := ds.windows 4 |>.findIdx? (eq ds_4)
-    index.map (ss[.]! % 10) |>.get!
+    index.map (ss[.+4]! % 10) |>.get!
 
 #guard 6 == let ss := evolve_seq 10 123; let ds := deltas ss; bananas_with_ds4 ss ds (-1, -1, 0, 2)
 
 
 
-def bananas_with_ds4' (sss : Array $ Array Nat) (dss : Array $ Array Int) (ds_4 : Int × Int × Int × Int) : Nat :=
+def bananas_with_ds4_total (sss : Array $ Array Nat) (dss : Array $ Array Int) (ds_4 : Int × Int × Int × Int) : Nat :=
     sss.zip dss
         |>.map (fun ss_ds =>
             let ss := ss_ds.1
@@ -91,7 +92,7 @@ def solve_part_two (input : String) : OutputTypePartTwo :=
         |>.map (fun abcd =>
             let (((a, b), c), d) := abcd
             dbg_trace "{a}\t{b}\t{c}\t{d}"
-            bananas_with_ds4' sss dss (a, b, c, d)
+            bananas_with_ds4_total sss dss (a, b, c, d)
         )
         |>.maximum?
         |>.get!
